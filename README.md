@@ -32,10 +32,14 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 
 ## 動作要件
 
-- Windows 10 / 11（64bit）【要確認】
-- .NET Framework 4.8 【要確認】
-- **Citrix PowerShell SDK がインストールされた端末**（Studio がインストールされている管理端末であれば通常利用可能）【要確認: 必要なスナップイン名・入手方法を記載】
-- 検証済み環境: CVAD 7.x オンプレミス環境 【要確認: 検証したバージョン・エディションを記載】
+- **Windows**（10 / 11 / Server 2016 以降）。.NET Framework 4.8 が必要です。
+  Windows 10 / 11 には標準搭載です。Windows Server(2016/2019)では .NET Framework 4.8 の追加インストールが必要な場合があります。
+- **Citrix Studio がインストールされた管理端末**で実行してください。
+  ShelfOps は Citrix の管理コマンド（Broker SDK）を使うため、SDK が入っていない
+  PC では動きません（「Citrix SDK が見つかりません」と表示されます）。
+- **ドメイン参加済み**で、**Citrix 管理者ロールを持つ AD アカウント**でログオンしていること。
+- ローカル管理者権限は**不要**です（標準ユーザーで動作します）。インストールも不要です。
+- 動作確認済み環境: Citrix Virtual Apps and Desktops 7 2507 (LTSR) CU1 ＋ Windows 11。他バージョンでは動作未確認です。
 
 ## インストール
 
@@ -66,7 +70,7 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 
 不具合報告・機能要望は [Issues](../../issues) へお願いします。日本語で構いません。
 
-- 不具合報告の際は、ログファイル（`%APPDATA%\ShelfOps\logs\` 【要確認: 実際のログパス】）の該当部分を添えていただけると調査が早くなります
+- 不具合報告の際は、ログファイル（`%APPDATA%\ShelfOps\logs\`）の該当部分を添えていただけると調査が早くなります
 - ログに資格情報・パスワードは記録されません
 
 ## ロードマップ
