@@ -32,7 +32,8 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 
 ## 動作要件
 
-- **Windows**（10 / 11 / Server 2016 以降）。.NET Framework 4.8 が必要です。
+- **Windows**（10 / 11 / Server 2016 以降）。
+- .NET Framework 4.8 が必要です。
   Windows 10 / 11 には標準搭載です。Windows Server(2016/2019)では .NET Framework 4.8 の追加インストールが必要な場合があります。
 - **Citrix Studio がインストールされた管理端末**で実行してください。
   ShelfOps は Citrix の管理コマンド（Broker SDK）を使うため、SDK が入っていない
@@ -43,7 +44,7 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 
 ## インストール
 
-1. [Releases](https://github.com/InfraTechShelf/shelfops) から最新版の zip をダウンロード
+1. [Releases](https://github.com/InfraTechShelf/shelfops/releases/tag/v0.5.0-alpha) から最新版の zip をダウンロード
 2. 展開前に、zip ファイルの SHA-256 ハッシュが下記および Release ページの記載と一致することを確認してください
 
    ```
