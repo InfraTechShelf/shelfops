@@ -96,4 +96,4 @@ Citrix, Citrix Virtual Apps and Desktops, XenApp, XenDesktop, NetScaler は Clou
 
 ---
 
-開発の経緯・設計思想: [Infra Tech Shelf](https://infratechshelf.com/) | 運営者: 【プロフィールページURL】
+開発の経緯・設計思想: [Infra Tech Shelf](https://infratechshelf.com/) | 運営者: https://infratechshelf.com/profile/
