@@ -44,17 +44,17 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 
 ## インストール
 
-1. [Releases](https://github.com/InfraTechShelf/shelfops/releases/tag/v0.5.0-alpha) から最新版の zip をダウンロード
+1. [Releases](https://github.com/InfraTechShelf/shelfops/releases/) から最新版の zip をダウンロード
 2. 展開前に、zip ファイルの SHA-256 ハッシュが下記および Release ページの記載と一致することを確認してください
 
    ```
-   SHA-256: 597736e28a87feeb013aa8df91cf6bc45b10ec31a0661b79f0830758782392ce
+   SHA-256: d9ea6560ed3ce767322e7ef7c21544a50680c56c3b9d364a01978a84a3a1b642
    ```
 
    確認コマンド（PowerShell）:
 
    ```powershell
-   Get-FileHash -Algorithm SHA256 .\ShelfOps-v1.0.0.zip
+   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.5.1-alpha.zip
    ```
 
 3. 任意のフォルダーに展開し、`ShelfOps.exe` を実行（インストーラーはありません。レジストリも変更しません）
