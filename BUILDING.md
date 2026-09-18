@@ -59,11 +59,19 @@ signing certificate in your certificate store. Official releases are currently u
 
 `docs/検証手順.md` (Japanese) describes the manual test procedure against a real CVAD site.
 
-For changes to the UI or to the string table, there is a smoke harness used during development that
-opens every window in both languages, checks for unresolved string keys (they render as
-`!!Key_Name!!`) and for WPF binding errors. It is not checked in as a project; the source is small
-and lives in the developer's scratch area. Contributions that turn it into a proper test project are
-welcome.
+For changes to the UI or to the string table, run the smoke test after a Release build:
+
+```powershell
+.	ools\XamlSmokeun-smoke.ps1
+```
+
+It opens every window in both languages without showing them, and fails if a string key is
+unresolved (they render as `!!Key_Name!!`), if WPF reports a binding error, or if the DataGrid column
+headers do not follow a language switch. It needs no DDC. Exit code 0 means all checks passed.
+
+It is a single C# file compiled on the fly with the `csc.exe` that ships with the .NET Framework, so
+it needs nothing beyond what the main build needs. Contributions that grow it into a proper test
+project are welcome.
 
 ## Project layout
 
