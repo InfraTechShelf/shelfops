@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <PropertyGroup>
+    <ProjectGuid>{7C1E4A20-0004-4B3D-9A11-C1741AD10004}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CitrixAdminTool.Worker</RootNamespace>
+    <AssemblyName>ShelfOps.Worker</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <Prefer32Bit>false</Prefer32Bit>
+    <!-- 【必須要件】UAC昇格マニフェストを付けない。標準ユーザー権限で動くこと。 -->
+    <ApplicationManifest></ApplicationManifest>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>$(SolutionRootDir)dist\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>$(SolutionRootDir)dist\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CitrixAdminTool.Core\CitrixAdminTool.Core.csproj">
+      <Project>{7C1E4A20-0001-4B3D-9A11-C1741AD10001}</Project>
+      <Name>CitrixAdminTool.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

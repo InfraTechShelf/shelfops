@@ -1,0 +1,169 @@
+<Window x:Class="CitrixAdminTool.Wpf.Views.MachinesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:CitrixAdminTool.Wpf.Services.Localization"
+        Title="{Binding Title}"
+        Height="600" Width="1100" MinHeight="400" MinWidth="820"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <!-- 種別（SingleSession / MultiSession）を表示言語に合わせて訳す -->
+        <loc:SessionSupportConverter x:Key="SessionSupportConv" />
+
+        <!-- メンテナンスONを目立たせる。Citrix Studio の「オン/オフ」より速く判別できるように -->
+        <Style x:Key="MaintenanceCell" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="#999999" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding InMaintenanceMode}" Value="True">
+                    <Setter Property="Foreground" Value="#C00000" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+
+        <!--
+            ツールバーは2段。上段=操作、下段=絞り込み。
+            条件が増えても1行に詰め込まず、役割で分けて視線を迷わせない。
+        -->
+        <Border DockPanel.Dock="Top" Padding="10,8" Background="#F3F3F3"
+                BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
+            <StackPanel>
+
+                <!-- 上段: 操作 -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="{loc:T Common_Refresh}" Command="{Binding RefreshCommand}" MinWidth="72" />
+                    <Border Width="1" Background="#CCCCCC" Margin="6,2,10,2" />
+                    <Button x:Name="MaintOnButton" Content="{loc:T Machines_MaintOn}" Click="OnMaintenanceOn"
+                            MinWidth="128" IsEnabled="{Binding IsNotBusy}" />
+                    <Button x:Name="MaintOffButton" Content="{loc:T Machines_MaintOff}" Click="OnMaintenanceOff"
+                            MinWidth="128" IsEnabled="{Binding IsNotBusy}" Margin="6,0,0,0" />
+                    <Border Width="1" Background="#CCCCCC" Margin="10,2,10,2" />
+                    <Button Content="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" MinWidth="112"
+                            IsEnabled="{Binding IsNotBusy}"
+                            ToolTip="{loc:T Export_TipClipboard}" />
+                    <Button Content="{loc:T Common_SaveCsv}" Click="OnExportCsv" MinWidth="96" Margin="6,0,0,0"
+                            IsEnabled="{Binding IsNotBusy}"
+                            ToolTip="{loc:T Export_TipCsv}" />
+                </StackPanel>
+
+                <!-- 下段: 絞り込み -->
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock Text="{loc:T Common_LabelGroup}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="170" VerticalContentAlignment="Center" Margin="0,0,10,0"
+                              ItemsSource="{Binding DeliveryGroups}"
+                              SelectedItem="{Binding DeliveryGroupFilter}"
+                              ToolTip="{loc:T Machines_TipGroup}" />
+                    <TextBlock Text="{loc:T Machines_LabelCatalog}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="170" VerticalContentAlignment="Center" Margin="0,0,10,0"
+                              ItemsSource="{Binding Catalogs}"
+                              SelectedItem="{Binding CatalogFilter}"
+                              ToolTip="{loc:T Machines_TipCatalog}" />
+                    <TextBlock Text="{loc:T Machines_LabelType}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="140" VerticalContentAlignment="Center" Margin="0,0,10,0"
+                              ItemsSource="{Binding SessionTypes}"
+                              SelectedItem="{Binding SessionTypeFilter}"
+                              ToolTip="{loc:T Machines_TipType}" />
+                    <TextBlock Text="{loc:T Machines_LabelMaint}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="90" VerticalContentAlignment="Center" Margin="0,0,10,0"
+                              ItemsSource="{Binding MaintenanceStates}"
+                              SelectedItem="{Binding MaintenanceFilter}"
+                              ToolTip="{loc:T Machines_TipMaint}" />
+                    <TextBlock Text="{loc:T Common_LabelSearch}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBox Width="170" VerticalContentAlignment="Center" Padding="4,3"
+                             Text="{Binding MachineNameFilter, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{loc:T Machines_TipSearch}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ステータスバー -->
+        <Border DockPanel.Dock="Bottom" Padding="10,6" Background="#F3F3F3"
+                BorderBrush="#DDDDDD" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <ProgressBar DockPanel.Dock="Right" Width="120" Height="12" IsIndeterminate="True"
+                             Margin="8,0,0,0">
+                    <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ProgressBar.Style>
+                </ProgressBar>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding FilterSummary}"
+                           Foreground="#555555" Margin="12,0,0,0" />
+                <!-- 直近の一括操作の内訳。どのマシンが失敗したかをその場で確認できるようにする -->
+                <Button DockPanel.Dock="Right" Content="{loc:T Common_Details}" Click="OnShowDetail" MinWidth="56"
+                        Margin="12,0,0,0" Padding="6,1"
+                        ToolTip="{loc:T Common_TipDetails}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasOperationDetail}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Border>
+
+        <!--
+            チェックボックス列は置かない。行の選択（複数選択）と
+            メンテナンスモードのON/OFFが紛らわしくなるため、
+            選択は行選択に一本化し、メンテ状態は文字と色で示す。
+        -->
+        <DataGrid x:Name="MachineGrid" Margin="10"
+                  ItemsSource="{Binding Machines}"
+                  SelectedItem="{Binding SelectedMachine}"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  SelectionMode="Extended"
+                  SelectionUnit="FullRow"
+                  ClipboardCopyMode="IncludeHeader"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column"
+                  IsEnabled="{Binding IsNotBusy}">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" />
+                    <MenuItem Header="{loc:T Common_SaveCsv}" Click="OnExportCsv" />
+                    <Separator />
+                    <MenuItem Header="{loc:T Machines_MaintOn}" Click="OnMaintenanceOn" />
+                    <MenuItem Header="{loc:T Machines_MaintOff}" Click="OnMaintenanceOff" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="{loc:T Col_Maint}" Binding="{Binding MaintenanceLabel}" Width="60"
+                                    ElementStyle="{StaticResource MaintenanceCell}" />
+                <DataGridTextColumn Header="{loc:T Col_MachineName}" Binding="{Binding MachineName}" Width="2*" />
+                <DataGridTextColumn Header="{loc:T Col_AssignedUsers}" Binding="{Binding AssociatedUserNames}" Width="1.5*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            <Setter Property="ToolTip" Value="{Binding AssociatedUserNames}" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="{loc:T Col_Catalog}" Binding="{Binding CatalogName}" Width="*" />
+                <DataGridTextColumn Header="{loc:T Col_DeliveryGroup}" Binding="{Binding DeliveryGroupName}" Width="*" />
+                <DataGridTextColumn Header="{loc:T Col_Type}" Binding="{Binding SessionSupport, Converter={StaticResource SessionSupportConv}}" Width="Auto" />
+                <DataGridTextColumn Header="{loc:T Col_Registration}" Binding="{Binding RegistrationState}" Width="Auto" />
+                <DataGridTextColumn Header="{loc:T Col_Power}" Binding="{Binding PowerState}" Width="Auto" />
+                <DataGridTextColumn Header="{loc:T Col_State}" Binding="{Binding SummaryState}" Width="Auto" />
+                <DataGridTextColumn Header="{loc:T Col_SessionCount}" Binding="{Binding SessionCount}" Width="Auto" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>

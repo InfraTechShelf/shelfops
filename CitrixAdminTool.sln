@@ -1,0 +1,40 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CitrixAdminTool.Core", "src\CitrixAdminTool.Core\CitrixAdminTool.Core.csproj", "{7C1E4A20-0001-4B3D-9A11-C1741AD10001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CitrixAdminTool.ConsoleTest", "src\CitrixAdminTool.ConsoleTest\CitrixAdminTool.ConsoleTest.csproj", "{7C1E4A20-0002-4B3D-9A11-C1741AD10002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CitrixAdminTool.Wpf", "src\CitrixAdminTool.Wpf\CitrixAdminTool.Wpf.csproj", "{7C1E4A20-0003-4B3D-9A11-C1741AD10003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CitrixAdminTool.Worker", "src\CitrixAdminTool.Worker\CitrixAdminTool.Worker.csproj", "{7C1E4A20-0004-4B3D-9A11-C1741AD10004}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7C1E4A20-0001-4B3D-9A11-C1741AD10001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C1E4A20-0001-4B3D-9A11-C1741AD10001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C1E4A20-0001-4B3D-9A11-C1741AD10001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C1E4A20-0001-4B3D-9A11-C1741AD10001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C1E4A20-0002-4B3D-9A11-C1741AD10002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C1E4A20-0002-4B3D-9A11-C1741AD10002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C1E4A20-0002-4B3D-9A11-C1741AD10002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C1E4A20-0002-4B3D-9A11-C1741AD10002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C1E4A20-0003-4B3D-9A11-C1741AD10003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C1E4A20-0003-4B3D-9A11-C1741AD10003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C1E4A20-0003-4B3D-9A11-C1741AD10003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C1E4A20-0003-4B3D-9A11-C1741AD10003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C1E4A20-0004-4B3D-9A11-C1741AD10004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C1E4A20-0004-4B3D-9A11-C1741AD10004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C1E4A20-0004-4B3D-9A11-C1741AD10004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C1E4A20-0004-4B3D-9A11-C1741AD10004}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

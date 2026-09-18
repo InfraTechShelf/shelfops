@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!--
+    全プロジェクト共通のビルド設定。
+
+    【.NET Framework 4.8 参照アセンブリの解決について】
+    本ソリューションは .NET Framework 4.8 をターゲットとするが、開発端末に
+    「.NET Framework 4.8 Developer Pack（ターゲティングパック）」が入っていない場合がある。
+    その場合 MSBuild は MSB3644 で失敗するため、フォールバックとして
+    ランタイムのアセンブリディレクトリを FrameworkPathOverride で指定する。
+
+    Developer Pack が入っている端末では通常どおり参照アセンブリが使われる
+    （下の Condition が false になるため、この上書きは行われない）。
+    どちらの経路でビルドしても、生成される成果物は .NET Framework 4.8 上で動作する。
+  -->
+  <PropertyGroup Condition="!Exists('$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8')">
+    <FrameworkPathOverride>$(WinDir)\Microsoft.NET\Framework64\v4.0.30319</FrameworkPathOverride>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>7.3</LangVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <!-- 出力を dist/ にまとめ、「フォルダごとコピーすれば動く」形にする -->
+    <SolutionRootDir>$(MSBuildThisFileDirectory)</SolutionRootDir>
+  </PropertyGroup>
+
+</Project>
