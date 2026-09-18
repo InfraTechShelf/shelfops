@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <PropertyGroup>
+    <ProjectGuid>{7C1E4A20-0001-4B3D-9A11-C1741AD10001}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>CitrixAdminTool.Core</RootNamespace>
+    <AssemblyName>ShelfOps.Core</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+
+    <!--
+      Windows PowerShell 5.1 のホスティング用アセンブリ。
+
+      仕様書は NuGet の Microsoft.PowerShell.5.1.ReferenceAssemblies を想定していたが、
+      System.Management.Automation.dll は Windows PowerShell 5.1 に同梱され GAC に
+      常駐しているため、NuGet を使わずに直接参照できる。
+
+      Private=false（コピーローカルしない）が重要:
+        - これは Windows のシステムコンポーネントであり、PowerShell 5.1 が入っている
+          すべての Windows（= CVAD管理環境を含む）に必ず存在する。
+        - 出力フォルダへコピーするとバージョン不一致や型の同一性の問題を招く。
+      したがって「単一フォルダ自己完結」の要件はこの参照によって損なわれない。
+    -->
+    <Reference Include="System.Management.Automation">
+      <HintPath>$(WinDir)\Microsoft.NET\assembly\GAC_MSIL\System.Management.Automation\v4.0_3.0.0.0__31bf3856ad364e35\System.Management.Automation.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Authentication\IAuthenticationContext.cs" />
+    <Compile Include="Authentication\ImpersonationAuthenticationContext.cs" />
+    <Compile Include="Authentication\IntegratedWindowsAuthenticationContext.cs" />
+    <Compile Include="Authentication\NativeMethods.cs" />
+    <Compile Include="Configuration\Json\JsonParser.cs" />
+    <Compile Include="Configuration\Json\JsonWriter.cs" />
+    <Compile Include="Configuration\SiteConfigStore.cs" />
+    <Compile Include="Connection\BrokerOperationService.cs" />
+    <Compile Include="Connection\BrokerSdkHelpers.cs" />
+    <Compile Include="Connection\CitrixConnectionService.cs" />
+    <Compile Include="Connection\SdkLoadException.cs" />
+    <Compile Include="Connection\PersistentWorkerClient.cs" />
+    <Compile Include="Connection\WorkerConnectionService.cs" />
+    <Compile Include="Interop\PipeMessaging.cs" />
+    <Compile Include="Interop\ProcessLauncher.cs" />
+    <Compile Include="Interop\WorkerProtocol.cs" />
+    <Compile Include="Models\BrokerMachine.cs" />
+    <Compile Include="Models\BrokerOperationResult.cs" />
+    <Compile Include="Models\BrokerPowerAction.cs" />
+    <Compile Include="Models\BrokerSession.cs" />
+    <Compile Include="Models\BrokerTargetResult.cs" />
+    <Compile Include="Models\ConnectionResult.cs" />
+    <Compile Include="Models\SiteConnection.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,239 @@
+<Window x:Class="CitrixAdminTool.Wpf.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:CitrixAdminTool.Wpf.Services.Localization"
+        Title="{Binding WindowTitle}"
+        Height="640" Width="1040" MinHeight="480" MinWidth="820"
+        WindowStartupLocation="CenterScreen">
+
+    <DockPanel>
+
+        <!-- ツールバー -->
+        <Border DockPanel.Dock="Top" Padding="10,8" Background="#F3F3F3"
+                BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <!-- 右端: バージョン情報 -->
+                <Button DockPanel.Dock="Right" Content="{loc:T Main_About}" Click="OnAbout"
+                        MinWidth="104" Margin="6,0,0,0" />
+                <!--
+                    表示言語。初回はOSの表示言語から決め、ここで変えると即座に画面へ反映し、
+                    次回起動時も選んだ言語で開く。
+                -->
+                <ComboBox DockPanel.Dock="Right" x:Name="LanguageBox" Width="104"
+                          VerticalContentAlignment="Center" Margin="10,0,0,0"
+                          SelectionChanged="OnLanguageChanged" />
+                <TextBlock DockPanel.Dock="Right" Text="{loc:T Main_LabelLanguage}"
+                           Margin="10,0,4,0" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="{loc:T Main_TestSelected}" Command="{Binding TestSelectedCommand}" />
+                    <Button Content="{loc:T Main_TestAll}" Command="{Binding TestAllCommand}" MinWidth="130" />
+                    <!-- 水平StackPanel内のSeparatorは水平線になって見えないため、縦罫線を自前で置く -->
+                    <Border Width="1" Background="#CCCCCC" Margin="4,2,10,2" />
+                    <Button Content="{loc:T Main_Machines}" Click="OnOpenMachines" MinWidth="96"
+                            IsEnabled="{Binding IsNotBusy}" />
+                    <Button Content="{loc:T Main_Sessions}" Click="OnOpenSessions" MinWidth="112"
+                            IsEnabled="{Binding IsNotBusy}" />
+                    <Border Width="1" Background="#CCCCCC" Margin="4,2,10,2" />
+                    <Button Content="{loc:T Common_Save}" Command="{Binding SaveCommand}" />
+                    <Border Width="1" Background="#CCCCCC" Margin="4,2,10,2" />
+                    <Button Content="{loc:T Main_ConfigFolder}" Command="{Binding OpenConfigFolderCommand}" MinWidth="104" />
+                    <Button Content="{loc:T Main_LogFolder}" Command="{Binding OpenLogFolderCommand}" MinWidth="104" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ステータスバー -->
+        <Border DockPanel.Dock="Bottom" Padding="10,6" Background="#F3F3F3"
+                BorderBrush="#DDDDDD" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <ProgressBar DockPanel.Dock="Right" Width="120" Height="12" IsIndeterminate="True"
+                             Margin="8,0,0,0">
+                    <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ProgressBar.Style>
+                </ProgressBar>
+                <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Border>
+
+        <!-- 本体 -->
+        <Grid Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" MinWidth="220" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="380" />
+            </Grid.ColumnDefinitions>
+
+            <!-- サイト一覧 -->
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top" Text="{loc:T Main_SiteList}" Style="{StaticResource SectionHeader}" />
+
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="{loc:T Common_Add}" Command="{Binding AddSiteCommand}" MinWidth="72" />
+                    <Button Content="{loc:T Common_Duplicate}" Command="{Binding CopySiteCommand}" MinWidth="72"
+                            ToolTip="{loc:T Main_TipDuplicate}" />
+                    <Button Content="{loc:T Common_Delete}" Command="{Binding DeleteSiteCommand}" MinWidth="72" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding Sites}"
+                         SelectedItem="{Binding SelectedSite}"
+                         IsEnabled="{Binding IsNotBusy}"
+                         HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="22" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="{Binding StatusGlyph}"
+                                           VerticalAlignment="Top" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#888888" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="Connected">
+                                                    <Setter Property="Foreground" Value="#1A7F37" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                                    <Setter Property="Foreground" Value="#C0392B" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding PrimaryDdc}" Foreground="#666666"
+                                               FontSize="11" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding StatusDetail}" Foreground="#888888"
+                                               FontSize="11" TextTrimming="CharacterEllipsis">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StatusDetail}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                          Background="Transparent" />
+
+            <!-- 編集フォーム + 結果 -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 編集フォーム -->
+                <GroupBox Grid.Row="0" Header="{loc:T Main_SiteSettings}" Padding="10">
+                    <GroupBox.Style>
+                        <Style TargetType="GroupBox">
+                            <Setter Property="IsEnabled" Value="True" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedSite}" Value="{x:Null}">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </GroupBox.Style>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="ID" Style="{StaticResource FieldLabel}" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6"
+                                 Text="{Binding SelectedSite.Id, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:T Site_DisplayName}" Style="{StaticResource FieldLabel}" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,6"
+                                 Text="{Binding SelectedSite.DisplayName, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:T Site_PrimaryDdc}" Style="{StaticResource FieldLabel}" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,6"
+                                 Text="{Binding SelectedSite.PrimaryDdc, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:T Site_AlternateDdc}" Style="{StaticResource FieldLabel}"
+                                   VerticalAlignment="Top" Margin="0,4,8,0" />
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,6">
+                            <TextBox Height="66" AcceptsReturn="True" TextWrapping="NoWrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     VerticalContentAlignment="Top"
+                                     Text="{Binding SelectedSite.AlternateDdcsText, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="{loc:T Site_AlternateDdcHint}"
+                                       Foreground="#666666" FontSize="11" Margin="0,3,0,0" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:T Site_AuthMode}" Style="{StaticResource FieldLabel}" />
+                        <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,6"
+                                  ItemsSource="{Binding AuthModes}"
+                                  DisplayMemberPath="Display"
+                                  SelectedValuePath="Value"
+                                  SelectedValue="{Binding SelectedSite.AuthMode}" />
+
+                        <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap"
+                                   Foreground="#8A6D1F" FontSize="11"
+                                   Text="{loc:T Site_CredentialHint}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedSite.RequiresCredential}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </GroupBox>
+
+                <!-- 結果 -->
+                <GroupBox Grid.Row="1" Header="{loc:T Main_ConnectionResult}" Margin="0,10,0,0" Padding="10">
+                    <TextBox Text="{Binding ResultText, Mode=OneWay}"
+                             IsReadOnly="True" IsReadOnlyCaretVisible="True"
+                             FontFamily="Consolas, MS Gothic" FontSize="12"
+                             TextWrapping="NoWrap"
+                             VerticalContentAlignment="Top"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             BorderThickness="0" Background="Transparent" />
+                </GroupBox>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,17 @@
+ShelfOps
+Copyright 2026 Infra Tech Shelf
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full text.
+
+"ShelfOps" is a name used by Infra Tech Shelf. The Apache License does not
+grant permission to use this name for derivative works (see Section 6 of
+the License). If you distribute a modified version, please give it a
+different name so that users can tell it apart from the original.
+
+Citrix, Citrix Virtual Apps and Desktops, XenApp, XenDesktop and NetScaler
+are trademarks of Cloud Software Group, Inc. or its affiliates. ShelfOps is
+an unofficial third-party tool and is not affiliated with Cloud Software
+Group, Inc. in any way. ShelfOps does not include or redistribute any Citrix
+software; it uses the Citrix Broker PowerShell SDK installed on the user's
+machine at run time.

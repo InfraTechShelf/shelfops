@@ -1,11 +1,20 @@
 # ShelfOps
 
+[日本語版はこちら](README_jp.md)
+
 **An operations console for Citrix Virtual Apps and Desktops (unofficial tool)**
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ShelfOps is a free Windows GUI tool for checking machines, toggling maintenance mode, managing
 sessions and performing VDI power operations in a Citrix Virtual Apps and Desktops (CVAD)
 environment — without opening Studio. Available in **English and Japanese**. Its defining design
 goal is that it **can be distributed and used without granting local administrator rights**.
+
+ShelfOps is **open source under the Apache License 2.0**. The complete source is in this repository:
+you can audit exactly what a tool that runs with Citrix administrator rights does, and build it
+yourself with nothing more than Windows and the free Visual Studio Build Tools (see
+[BUILDING.md](BUILDING.md)).
 
 Project site: [Infra Tech Shelf](https://infratechshelf.com/)
 
@@ -71,7 +80,7 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
    shown on the Release page.
 
    ```
-   SHA-256: 6c3524e5491ba6ba768746b2153cf2df6b96babbbe8dea11aac9c9f22dfbf47c
+   SHA-256: becb19d53c6a2b2823645f3631beca9c6fddcb99f82bfe02d4f2ec3dc3572175
    ```
 
    To check (PowerShell):
@@ -82,6 +91,9 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
 
 3. Extract it anywhere and run `ShelfOps.exe`. There is no installer, and nothing is written to the
    registry.
+
+Prefer to build it yourself? See [BUILDING.md](BUILDING.md). The build has no NuGet dependencies
+and does not include any Citrix binaries.
 
 > **About the SmartScreen warning**: this tool is not code-signed, so Windows SmartScreen may warn
 > you the first time you run it. Choose "More info" → "Run anyway". Verify the hash first so you know
@@ -111,22 +123,28 @@ fine.
 - Attaching the relevant part of the log file (`%APPDATA%\ShelfOps\logs\`) speeds up investigation
 - Credentials and passwords are never recorded in logs
 
+Pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). To report a security issue
+privately, see [SECURITY.md](SECURITY.md).
+
 ## Roadmap
 
 - [ ] Session shadowing
 - [ ] Delivery group and catalog management (under consideration)
 - [ ] Code signing
 
-## Terms of use
+## License
 
-- **This version is free to use for individuals and organisations alike**, including commercial use
-- Redistribution, modification and reverse engineering are prohibited
-- **About future versions**: the tool is expected to remain free for some time after the 1.0.0
-  release, but **use by organisations may become paid** in the future. If that happens, there will be
-  **no difference in features** between free and paid use
-- Even if a paid model is introduced, **the terms of already-distributed versions will not change
-  retroactively**. The copy you have may continue to be used under the terms in effect when you
-  obtained it
+ShelfOps is open source under the [Apache License 2.0](LICENSE). You may use it freely — including
+in commercial environments — modify it, and redistribute it under the terms of that license.
+
+The name "ShelfOps" is not covered by the license grant (Apache 2.0, Section 6). If you distribute a
+modified build, please give it a different name so users can tell it apart from the original.
+
+## Support
+
+ShelfOps itself is free, and will stay free. If your organisation wants help deploying it, fitting it
+into your operating procedures, or adapting it to your environment, paid support and consulting are
+available from [Infra Tech Shelf](https://infratechshelf.com/).
 
 ## Disclaimer
 

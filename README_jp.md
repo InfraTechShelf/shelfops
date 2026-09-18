@@ -1,8 +1,16 @@
 # ShelfOps
 
+[English](README.md)
+
 **Citrix Virtual Apps and Desktops 対応 運用管理コンソール（非公式ツール）**
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確認・メンテナンスモード切替・セッション管理・VDIの電源操作を、Studio を開かずに行える無料の Windows GUI ツールです。**日本語／英語に対応**しています。**端末にローカル管理者権限を与えずに配布・利用できる**設計が特徴です。
+
+ShelfOps は **Apache License 2.0 のオープンソース**です。ソースコードはすべてこのリポジトリにあります。
+Citrix 管理者権限で動くツールが実際に何をしているかを確認でき、Windows と無償の Visual Studio Build Tools
+だけで自分でビルドすることもできます（[BUILDING.md](BUILDING.md)）。
 
 運営サイト: [Infra Tech Shelf](https://infratechshelf.com/)（設計思想の解説記事あり）
 
@@ -60,7 +68,7 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 2. 展開前に、zip ファイルの SHA-256 ハッシュが下記および Release ページの記載と一致することを確認してください
 
    ```
-   SHA-256: 6c3524e5491ba6ba768746b2153cf2df6b96babbbe8dea11aac9c9f22dfbf47c
+   SHA-256: becb19d53c6a2b2823645f3631beca9c6fddcb99f82bfe02d4f2ec3dc3572175
    ```
 
    確認コマンド（PowerShell）:
@@ -70,6 +78,8 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
    ```
 
 3. 任意のフォルダーに展開し、`ShelfOps.exe` を実行（インストーラーはありません。レジストリも変更しません）
+
+自分でビルドしたい場合は [BUILDING.md](BUILDING.md) をご覧ください。NuGet 依存はなく、Citrix のバイナリも含みません。
 
 > **SmartScreen の警告について**: 本ツールはコード署名を行っていないため、初回実行時に Windows SmartScreen の警告が表示されることがあります。「詳細情報」→「実行」で起動できます。ハッシュ照合で改ざんがないことを確認のうえ、ご判断ください。
 
@@ -90,20 +100,27 @@ ShelfOps は、Citrix Virtual Apps and Desktops（CVAD）環境のマシン確�
 - 不具合報告の際は、ログファイル（`%APPDATA%\ShelfOps\logs\`）の該当部分を添えていただけると調査が早くなります
 - ログに資格情報・パスワードは記録されません
 
+プルリクエストも歓迎します（[CONTRIBUTING.md](CONTRIBUTING.md)）。セキュリティに関わる報告は
+[SECURITY.md](SECURITY.md) の手順で非公開にお送りください。
+
 ## ロードマップ
 
 - [ ] セッションのシャドウ（画面共有）
 - [ ] デリバリーグループ・カタログの管理（検討中）
 - [ ] コード署名の導入
 
-## 利用条件
+## ライセンス
 
-- **本バージョンは、個人・法人を問わず無償で利用できます**（商用環境での利用を含みます）
-- 再配布・改変・リバースエンジニアリングは禁止します
-- **今後のバージョンについて**: 正式版（1.0.0）のリリース以降もしばらくは無償提供を継続する予定ですが、
-  将来的に**法人でのご利用を有償**とする可能性があります。その場合も、有償・無償で**機能に差は設けません**
-- 有償化する場合でも、**すでに配布済みのバージョンの利用条件を遡って変更することはありません**。
-  お手元のバージョンは、入手時点の条件のままご利用いただけます
+ShelfOps は [Apache License 2.0](LICENSE) のオープンソースソフトウェアです。商用環境を含めて自由に利用でき、
+改変や再配布もライセンスの条件のもとで行えます。
+
+「ShelfOps」という名称はライセンスの許諾対象に含まれません（Apache 2.0 第6条）。改変版を配布する場合は、
+利用者がオリジナルと区別できるよう別の名前を付けてください。
+
+## サポート
+
+ShelfOps 自体は無償で、今後も無償です。組織への導入、運用手順への組み込み、環境に合わせた調整などの
+支援が必要な場合は、[Infra Tech Shelf](https://infratechshelf.com/) が有償のサポート・コンサルティングを提供しています。
 
 ## 免責事項
 

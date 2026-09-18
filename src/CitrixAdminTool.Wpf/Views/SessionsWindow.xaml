@@ -1,0 +1,152 @@
+<Window x:Class="CitrixAdminTool.Wpf.Views.SessionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:CitrixAdminTool.Wpf.Services.Localization"
+        Title="{Binding Title}"
+        Height="600" Width="1060" MinHeight="400" MinWidth="800"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel>
+
+        <!-- ツールバーは2段（上段=操作 / 下段=絞り込み）。マシン一覧と同じ作りにそろえる -->
+        <Border DockPanel.Dock="Top" Padding="10,8" Background="#F3F3F3"
+                BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
+            <StackPanel>
+
+                <!-- 上段: 操作 -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="{loc:T Common_Refresh}" Command="{Binding RefreshCommand}" MinWidth="72" />
+                    <Border Width="1" Background="#CCCCCC" Margin="6,2,10,2" />
+                    <Button x:Name="DisconnectButton" Content="{loc:T Sessions_Disconnect}" Click="OnDisconnect"
+                            MinWidth="88" IsEnabled="{Binding IsNotBusy}" />
+                    <Button x:Name="LogoffButton" Content="{loc:T Sessions_Logoff}" Click="OnLogoff"
+                            MinWidth="96" Margin="6,0,0,0" IsEnabled="{Binding IsNotBusy}" />
+                    <Border Width="1" Background="#CCCCCC" Margin="10,2,10,2" />
+                    <!--
+                        電源操作。ボタンを4つ並べるとツールバーが破綻するためメニューにまとめる。
+                        強制系（電源オフ・リセット）は区切り線で分け、赤字にして
+                        正常終了系と取り違えないようにする。
+                    -->
+                    <Menu Background="Transparent" VerticalAlignment="Center"
+                          IsEnabled="{Binding IsNotBusy}">
+                        <MenuItem Header="{loc:T Power_Menu}" Height="22"
+                                  ToolTip="{loc:T Power_TipMenu}">
+                            <MenuItem Header="{loc:T Power_Shutdown}" Click="OnPowerShutdown"
+                                      ToolTip="{loc:T Power_TipShutdown}" />
+                            <MenuItem Header="{loc:T Power_Restart}" Click="OnPowerRestart"
+                                      ToolTip="{loc:T Power_TipRestart}" />
+                            <Separator />
+                            <MenuItem Header="{loc:T Power_TurnOff}" Click="OnPowerTurnOff" Foreground="#C00000"
+                                      ToolTip="{loc:T Power_TipTurnOff}" />
+                            <MenuItem Header="{loc:T Power_Reset}" Click="OnPowerReset" Foreground="#C00000"
+                                      ToolTip="{loc:T Power_TipReset}" />
+                        </MenuItem>
+                    </Menu>
+                    <Border Width="1" Background="#CCCCCC" Margin="10,2,10,2" />
+                    <Button Content="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" MinWidth="112"
+                            IsEnabled="{Binding IsNotBusy}"
+                            ToolTip="{loc:T Export_TipClipboard}" />
+                    <Button Content="{loc:T Common_SaveCsv}" Click="OnExportCsv" MinWidth="96" Margin="6,0,0,0"
+                            IsEnabled="{Binding IsNotBusy}"
+                            ToolTip="{loc:T Export_TipCsv}" />
+                </StackPanel>
+
+                <!-- 下段: 絞り込み -->
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock Text="{loc:T Common_LabelGroup}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="180" VerticalContentAlignment="Center" Margin="0,0,10,0"
+                              ItemsSource="{Binding DeliveryGroups}"
+                              SelectedItem="{Binding DeliveryGroupFilter}"
+                              ToolTip="{loc:T Sessions_TipGroup}" />
+                    <TextBlock Text="{loc:T Sessions_LabelState}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="140" VerticalContentAlignment="Center" Margin="0,0,10,0"
+                              ItemsSource="{Binding SessionStates}"
+                              SelectedItem="{Binding SessionStateFilter}"
+                              ToolTip="{loc:T Sessions_TipState}" />
+                    <TextBlock Text="{loc:T Common_LabelSearch}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBox Width="180" VerticalContentAlignment="Center" Padding="4,3"
+                             Text="{Binding UserNameFilter, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{loc:T Sessions_TipSearch}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ステータスバー -->
+        <Border DockPanel.Dock="Bottom" Padding="10,6" Background="#F3F3F3"
+                BorderBrush="#DDDDDD" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <ProgressBar DockPanel.Dock="Right" Width="120" Height="12" IsIndeterminate="True"
+                             Margin="8,0,0,0">
+                    <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ProgressBar.Style>
+                </ProgressBar>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding FilterSummary}"
+                           Foreground="#555555" Margin="12,0,0,0" />
+                <Button DockPanel.Dock="Right" Content="{loc:T Common_Details}" Click="OnShowDetail" MinWidth="56"
+                        Margin="12,0,0,0" Padding="6,1"
+                        ToolTip="{loc:T Common_TipDetails}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasOperationDetail}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Border>
+
+        <!-- セッション一覧 -->
+        <DataGrid x:Name="SessionGrid" Margin="10"
+                  ItemsSource="{Binding Sessions}"
+                  SelectedItem="{Binding SelectedSession}"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  SelectionMode="Extended"
+                  SelectionUnit="FullRow"
+                  ClipboardCopyMode="IncludeHeader"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column"
+                  IsEnabled="{Binding IsNotBusy}">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" />
+                    <MenuItem Header="{loc:T Common_SaveCsv}" Click="OnExportCsv" />
+                    <Separator />
+                    <MenuItem Header="{loc:T Sessions_Disconnect}" Click="OnDisconnect" />
+                    <MenuItem Header="{loc:T Sessions_Logoff}" Click="OnLogoff" />
+                    <Separator />
+                    <MenuItem Header="{loc:T Power_MenuPlain}">
+                        <MenuItem Header="{loc:T Power_Shutdown}" Click="OnPowerShutdown" />
+                        <MenuItem Header="{loc:T Power_Restart}" Click="OnPowerRestart" />
+                        <Separator />
+                        <MenuItem Header="{loc:T Power_TurnOff}" Click="OnPowerTurnOff" Foreground="#C00000" />
+                        <MenuItem Header="{loc:T Power_Reset}" Click="OnPowerReset" Foreground="#C00000" />
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="{loc:T Col_User}" Binding="{Binding UserName}" Width="2*" />
+                <DataGridTextColumn Header="{loc:T Col_Machine}" Binding="{Binding MachineName}" Width="2*" />
+                <DataGridTextColumn Header="{loc:T Col_DeliveryGroup}" Binding="{Binding DeliveryGroupName}" Width="*" />
+                <DataGridTextColumn Header="{loc:T Col_State}" Binding="{Binding SessionState}" Width="Auto" />
+                <DataGridTextColumn Header="{loc:T Col_Client}" Binding="{Binding ClientName}" Width="*" />
+                <DataGridTextColumn Header="{loc:T Col_StartTime}" Binding="{Binding StartTime}" Width="Auto" />
+                <DataGridTextColumn Header="{loc:T Col_StateChangeTime}" Binding="{Binding SessionStateChangeTime}" Width="Auto" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>

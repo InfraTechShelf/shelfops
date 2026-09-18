@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <PropertyGroup>
+    <ProjectGuid>{7C1E4A20-0003-4B3D-9A11-C1741AD10003}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>CitrixAdminTool.Wpf</RootNamespace>
+    <AssemblyName>ShelfOps</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <Prefer32Bit>false</Prefer32Bit>
+    <!-- 【必須要件】UAC昇格マニフェストを付けない。標準ユーザー権限で起動できること。 -->
+    <ApplicationManifest></ApplicationManifest>
+    <!-- exeのファイルアイコン。WPFはWindow.Icon未指定時これをタイトルバー/タスクバーにも使う。 -->
+    <ApplicationIcon>ShelfOps.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>$(SolutionRootDir)dist\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>$(SolutionRootDir)dist\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+
+    <!--
+      WPFのアセンブリ。ターゲティングパックが無い環境では既定の参照解決が
+      これらを見つけられない（実体が .NET Framework ランタイム配下の WPF\ にあるため）。
+      Private=false: いずれも .NET Framework 4.8 に同梱されるシステムアセンブリなので
+      出力フォルダへコピーしない。単一フォルダ自己完結の要件は損なわれない。
+    -->
+    <Reference Include="System.Xaml">
+      <HintPath>$(WinDir)\Microsoft.NET\Framework64\v4.0.30319\System.Xaml.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <HintPath>$(WinDir)\Microsoft.NET\Framework64\v4.0.30319\WPF\PresentationCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <HintPath>$(WinDir)\Microsoft.NET\Framework64\v4.0.30319\WPF\PresentationFramework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <HintPath>$(WinDir)\Microsoft.NET\Framework64\v4.0.30319\WPF\WindowsBase.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="Views\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\CredentialWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\MachinesWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\SessionsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\OperationDetailWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\AboutWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\CredentialWindow.xaml.cs">
+      <DependentUpon>CredentialWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\MachinesWindow.xaml.cs">
+      <DependentUpon>MachinesWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\SessionsWindow.xaml.cs">
+      <DependentUpon>SessionsWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\OperationDetailWindow.xaml.cs">
+      <DependentUpon>OperationDetailWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mvvm\ViewModelBase.cs" />
+    <Compile Include="Mvvm\RelayCommand.cs" />
+    <Compile Include="ViewModels\MachinesViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\SessionsViewModel.cs" />
+    <Compile Include="ViewModels\SiteViewModel.cs" />
+    <Compile Include="Services\ICredentialPrompt.cs" />
+    <Compile Include="Services\CredentialInput.cs" />
+    <Compile Include="Services\ConnectionReportFormatter.cs" />
+    <Compile Include="Services\RunLogWriter.cs" />
+    <Compile Include="Services\TableExporter.cs" />
+    <Compile Include="Services\Localization\Loc.cs" />
+    <Compile Include="Services\Localization\SessionSupportConverter.cs" />
+    <Compile Include="Services\Localization\StringTable.cs" />
+    <Compile Include="Services\Localization\TExtension.cs" />
+    <Compile Include="Services\UiStateStore.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CitrixAdminTool.Core\CitrixAdminTool.Core.csproj">
+      <Project>{7C1E4A20-0001-4B3D-9A11-C1741AD10001}</Project>
+      <Name>CitrixAdminTool.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
