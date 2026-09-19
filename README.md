@@ -80,13 +80,13 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
    shown on the Release page.
 
    ```
-   SHA-256: becb19d53c6a2b2823645f3631beca9c6fddcb99f82bfe02d4f2ec3dc3572175
+   SHA-256: f8ef2be7b3d2c79e13afb824e3d6b618680425f4eb1d5c8ac52ec6e9adb6606a
    ```
 
    To check (PowerShell):
 
    ```powershell
-   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.7.0-alpha.zip
+   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.7.1-alpha.zip
    ```
 
 3. Extract it anywhere and run `ShelfOps.exe`. There is no installer, and nothing is written to the

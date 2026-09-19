@@ -27,7 +27,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $dist = Join-Path $root "dist\Release"
-$version = "0.7.0-alpha"
+$version = "0.7.1-alpha"
 $appName = "ShelfOps"
 
 # 公開する実行ファイル群（これ以外は含めない）

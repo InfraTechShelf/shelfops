@@ -1,6 +1,6 @@
 # ShelfOps Quick Start
 
-**ShelfOps 0.7.0-alpha** — an operations console for Citrix Virtual Apps and Desktops (on-premises)
+**ShelfOps 0.7.1-alpha** — an operations console for Citrix Virtual Apps and Desktops (on-premises)
 
 This guide is for CVAD operators using ShelfOps for the first time. It walks through registering a
 site, connecting to it, and working with machines and sessions.
