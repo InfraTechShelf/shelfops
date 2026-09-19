@@ -62,7 +62,7 @@ signing certificate in your certificate store. Official releases are currently u
 For changes to the UI or to the string table, run the smoke test after a Release build:
 
 ```powershell
-.	ools\XamlSmokeun-smoke.ps1
+.\tools\XamlSmoke\run-smoke.ps1
 ```
 
 It opens every window in both languages without showing them, and fails if a string key is
