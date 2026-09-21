@@ -70,12 +70,14 @@
     <Compile Include="Interop\PipeMessaging.cs" />
     <Compile Include="Interop\ProcessLauncher.cs" />
     <Compile Include="Interop\WorkerProtocol.cs" />
+    <Compile Include="Models\BrokerDesktopGroup.cs" />
     <Compile Include="Models\BrokerMachine.cs" />
     <Compile Include="Models\BrokerOperationResult.cs" />
     <Compile Include="Models\BrokerPowerAction.cs" />
     <Compile Include="Models\BrokerSession.cs" />
     <Compile Include="Models\BrokerTargetResult.cs" />
     <Compile Include="Models\ConnectionResult.cs" />
+    <Compile Include="Models\LicenseInfo.cs" />
     <Compile Include="Models\SiteConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

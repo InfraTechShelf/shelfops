@@ -44,6 +44,9 @@ namespace CitrixAdminTool.Core.Models
         /// <summary>読み取り操作（セッション一覧）の結果。</summary>
         public List<BrokerSession> Sessions { get; set; } = new List<BrokerSession>();
 
+        /// <summary>読み取り操作（デリバリーグループ一覧）の結果。</summary>
+        public List<BrokerDesktopGroup> DesktopGroups { get; set; } = new List<BrokerDesktopGroup>();
+
         /// <summary>
         /// 対象ごとの結果。一括操作では対象の数だけ積まれ、単一操作でも1件積む。
         /// 「どの対象が失敗したか」を画面とログの両方で示すために使う。

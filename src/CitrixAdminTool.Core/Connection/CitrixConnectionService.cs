@@ -238,10 +238,12 @@ namespace CitrixAdminTool.Core.Connection
                         // InMemorySchemaAppliedVersion（内部スキーマ版）のみで、
                         // ControllerVersion / Version / ProductVersion のいずれも存在しなかった。
                         // 製品バージョンは Get-BrokerController の ControllerVersion から取る。
-                        string version = TryGetControllerVersion(ps, ddc, diagnostics);
+                        List<ControllerLicenseStatus> controllerStatuses;
+                        string version = TryGetControllerVersion(ps, ddc, diagnostics, out controllerStatuses);
 
                         var ok = ConnectionResult.Ok(ddc, siteName, version,
                             processUser, sw.Elapsed);
+                        ok.License = ReadLicenseInfo(siteObject, controllerStatuses);
                         ok.RequestedIdentity = auth.ChangesNetworkIdentity ? auth.GetRequestedUserName() : null;
                         ok.ImpersonationActive = impersonationActive;
                         ok.FunctionalLevel = functionalLevel;
@@ -360,6 +362,35 @@ namespace CitrixAdminTool.Core.Connection
         }
 
         /// <summary>
+        /// Get-BrokerSite の結果からライセンス構成を読む。
+        ///
+        /// プロパティ名は CVAD のバージョンで揺れる可能性があるため、無ければ null のまま
+        /// （既存の方針どおり、取れないことを理由に落とさない）。
+        /// </summary>
+        private static LicenseInfo ReadLicenseInfo(PSObject siteObject, List<ControllerLicenseStatus> controllers)
+        {
+            var info = new LicenseInfo
+            {
+                LicenseServerName = GetProp(siteObject, "LicenseServerName"),
+                LicenseServerPort = GetProp(siteObject, "LicenseServerPort"),
+                ProductCode = GetProp(siteObject, "ProductCode"),
+                ProductEdition = GetProp(siteObject, "ProductEdition"),
+                LicensingModel = GetProp(siteObject, "LicensingModel"),
+                Controllers = controllers ?? new List<ControllerLicenseStatus>()
+            };
+
+            bool grace;
+            if (bool.TryParse(GetProp(siteObject, "LicensingGracePeriodActive"), out grace))
+                info.GracePeriodActive = grace;
+
+            int hours;
+            if (int.TryParse(GetProp(siteObject, "LicensingGraceHoursLeft"), out hours))
+                info.GraceHoursLeft = hours;
+
+            return info;
+        }
+
+        /// <summary>
         /// 接続先DDCのCVAD製品バージョンを Get-BrokerController から取得する。
         ///
         /// 疎通そのものは Get-BrokerSite の成功で確定済みであり、バージョンは補助情報。
@@ -367,8 +398,11 @@ namespace CitrixAdminTool.Core.Connection
         /// （Citrix管理者ロールの権限差でこのコマンドだけ通らない可能性があるため、
         ///  バージョンが取れないことを理由に「接続失敗」と報告してはいけない）。
         /// </summary>
-        private static string TryGetControllerVersion(PowerShell ps, string ddc, List<string> diagnostics)
+        private static string TryGetControllerVersion(
+            PowerShell ps, string ddc, List<string> diagnostics, out List<ControllerLicenseStatus> licenseStatuses)
         {
+            licenseStatuses = new List<ControllerLicenseStatus>();
+
             try
             {
                 ps.Commands.Clear();
@@ -391,6 +425,20 @@ namespace CitrixAdminTool.Core.Connection
                 {
                     diagnostics.Add("Get-BrokerControllerがコントローラを返しませんでした。");
                     return null;
+                }
+
+                // 同じ結果からライセンスサーバーとの接続状況も拾う（DDC ごとに異なりうる）。
+                // 追加の往復を発生させないため、バージョン取得と同じ呼び出しで済ませる。
+                foreach (var c in controllers)
+                {
+                    if (c == null) continue;
+                    licenseStatuses.Add(new ControllerLicenseStatus
+                    {
+                        DnsName = GetProp(c, "DNSName"),
+                        LicensingServerState = GetProp(c, "LicensingServerState"),
+                        LicensingGraceState = GetProp(c, "LicensingGraceState"),
+                        State = GetProp(c, "State")
+                    });
                 }
 
                 // サイト内の全コントローラが返るため、いま接続しているDDC自身の

@@ -28,8 +28,9 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
 
 | Feature | Description |
 |---|---|
-| Connection test | Verifies connectivity to Delivery Controllers, with failover |
+| Connection test | Verifies connectivity to Delivery Controllers, with failover. Shows the license server, edition and licensing model, and **whether each DDC can reach the license server** |
 | Machine list | Lists machines and their state, including assigned users |
+| Delivery group list | Lists delivery groups with machine counts; **unregistered machines are highlighted** |
 | Maintenance mode | Toggle ON/OFF for several machines at once (with a confirmation showing the count) |
 | Session management | List, disconnect and log off sessions; multi-select for bulk operations |
 | **VDI power operations** | Shut down or restart the machine hosting a session, straight from the session list. Force power off and force reset are also available |
@@ -57,7 +58,8 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
 ### Not in this version
 
 - Session shadowing — planned for a future release
-- Delivery group and catalog management — under consideration
+- Delivery group configuration backup, comparison and restore — in development (see `docs/SPEC_phase5_deliverygroups.md`)
+- Catalog management — under consideration
 - **Citrix Cloud (DaaS) is not supported. This tool is for on-premises environments only**
 
 ## Requirements
@@ -80,13 +82,13 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
    shown on the Release page.
 
    ```
-   SHA-256: f8ef2be7b3d2c79e13afb824e3d6b618680425f4eb1d5c8ac52ec6e9adb6606a
+   SHA-256: aa50e73a815e4c0b320881c5fbfadb23bfe7ad58ddff0f9d250cf86c2379df98
    ```
 
    To check (PowerShell):
 
    ```powershell
-   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.7.1-alpha.zip
+   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.8.0-alpha.zip
    ```
 
 3. Extract it anywhere and run `ShelfOps.exe`. There is no installer, and nothing is written to the
@@ -129,7 +131,8 @@ privately, see [SECURITY.md](SECURITY.md).
 ## Roadmap
 
 - [ ] Session shadowing
-- [ ] Delivery group and catalog management (under consideration)
+- [ ] Delivery group configuration: save, compare and restore
+- [ ] Catalog management (under consideration)
 - [ ] Code signing
 
 ## License

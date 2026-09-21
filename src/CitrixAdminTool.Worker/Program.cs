@@ -186,6 +186,14 @@ namespace CitrixAdminTool.Worker
                         return WorkerProtocol.SerializeOperationResult(result);
                     }
 
+                case WorkerProtocol.OpListDesktopGroups:
+                    {
+                        var result = new BrokerOperationService().ListDesktopGroups(site);
+                        StampOperation(result);
+                        success = result.Success;
+                        return WorkerProtocol.SerializeOperationResult(result);
+                    }
+
                 case WorkerProtocol.OpLogoffSession:
                     {
                         var result = new BrokerOperationService().LogoffSession(site, GetLong(parameters, "uid"));

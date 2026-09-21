@@ -82,6 +82,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\DesktopGroupsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\OperationDetailWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -113,6 +117,10 @@
       <DependentUpon>SessionsWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Views\DesktopGroupsWindow.xaml.cs">
+      <DependentUpon>DesktopGroupsWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Views\OperationDetailWindow.xaml.cs">
       <DependentUpon>OperationDetailWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -123,6 +131,7 @@
     </Compile>
     <Compile Include="Mvvm\ViewModelBase.cs" />
     <Compile Include="Mvvm\RelayCommand.cs" />
+    <Compile Include="ViewModels\DesktopGroupsViewModel.cs" />
     <Compile Include="ViewModels\MachinesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SessionsViewModel.cs" />

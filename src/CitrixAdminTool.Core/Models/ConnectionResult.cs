@@ -78,6 +78,13 @@ namespace CitrixAdminTool.Core.Models
         /// <summary>試行にかかった時間。</summary>
         public TimeSpan Elapsed { get; set; }
 
+        /// <summary>
+        /// ライセンス構成とライセンスサーバーとの接続状況（成功時、取得できれば）。
+        /// 疎通確認の副産物として Get-BrokerSite / Get-BrokerController から取る。
+        /// 取れなくても接続失敗にはしない（補助情報）。
+        /// </summary>
+        public LicenseInfo License { get; set; }
+
         public static ConnectionResult Ok(string ddc, string siteName, string version, string authAs, TimeSpan elapsed)
         {
             return new ConnectionResult

@@ -100,6 +100,7 @@ internal static class XamlSmoke
         failures += Check(label + " / OperationDetailWindow", MakeDetail);
         failures += Check(label + " / MachinesWindow", MakeMachines);
         failures += Check(label + " / SessionsWindow", MakeSessions);
+        failures += Check(label + " / DesktopGroupsWindow", MakeDesktopGroups);
         failures += Check(label + " / AboutWindow", () => new AboutWindow());
         failures += Check(label + " / CredentialWindow", () => new CredentialWindow("Smoke test site"));
         return failures;
@@ -131,6 +132,26 @@ internal static class XamlSmoke
         vm.Machines.Add(new BrokerMachine { MachineName = @"CORP\SRV-001", SessionSupport = "MultiSession" });
 
         return new MachinesWindow(vm);
+    }
+
+    private static Window MakeDesktopGroups()
+    {
+        var vm = new DesktopGroupsViewModel(new WorkerConnectionService(), _site,
+            AuthMode.IntegratedWindows, new StubPrompt());
+
+        vm.Groups.Add(new BrokerDesktopGroup
+        {
+            Uid = 1, Name = "VDI-Standard", Enabled = true, InMaintenanceMode = false,
+            DesktopKind = "Private", DeliveryType = "DesktopsOnly", SessionSupport = "SingleSession",
+            TotalDesktops = 120, DesktopsInUse = 87, DesktopsUnregistered = 3, Sessions = 87
+        });
+        vm.Groups.Add(new BrokerDesktopGroup
+        {
+            Uid = 2, Name = "Apps-Shared", Enabled = false, InMaintenanceMode = true,
+            DesktopKind = "Shared", DeliveryType = "AppsOnly", SessionSupport = "MultiSession"
+        });
+
+        return new DesktopGroupsWindow(vm);
     }
 
     private static Window MakeSessions()

@@ -237,6 +237,24 @@ namespace CitrixAdminTool.Core.Connection
         }
 
         // ==================================================================
+        // デリバリーグループ一覧（読み取り）
+        // ==================================================================
+
+        public BrokerOperationResult ListDesktopGroupsIntegrated(SiteConnection site)
+        {
+            return RunOperationIntegrated(site,
+                WorkerProtocol.BuildRequest(WorkerProtocol.OpListDesktopGroups, site, null));
+        }
+
+        public BrokerOperationResult ListDesktopGroupsWithCredential(
+            SiteConnection site, string domain, string userName, SecureString password)
+        {
+            return RunOperationWithCredential(site,
+                WorkerProtocol.BuildRequest(WorkerProtocol.OpListDesktopGroups, site, null),
+                domain, userName, password);
+        }
+
+        // ==================================================================
         // セッション操作（一覧＝読み取り / ログオフ・切断＝書き込み・破壊的）
         // ==================================================================
 

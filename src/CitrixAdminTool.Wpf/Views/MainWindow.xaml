@@ -33,6 +33,8 @@
                             IsEnabled="{Binding IsNotBusy}" />
                     <Button Content="{loc:T Main_Sessions}" Click="OnOpenSessions" MinWidth="112"
                             IsEnabled="{Binding IsNotBusy}" />
+                    <Button Content="{loc:T Main_DesktopGroups}" Click="OnOpenDesktopGroups" MinWidth="140"
+                            IsEnabled="{Binding IsNotBusy}" />
                     <Border Width="1" Background="#CCCCCC" Margin="4,2,10,2" />
                     <Button Content="{loc:T Common_Save}" Command="{Binding SaveCommand}" />
                     <Border Width="1" Background="#CCCCCC" Margin="4,2,10,2" />
