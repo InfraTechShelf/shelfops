@@ -65,6 +65,8 @@ namespace CitrixAdminTool.Wpf.Services
                     AppendMachineTable(sb, r.Machines);
                 if (r.Sessions != null && r.Sessions.Count > 0)
                     AppendSessionTable(sb, r.Sessions);
+                if (r.DesktopGroups != null && r.DesktopGroups.Count > 0)
+                    AppendDesktopGroupTable(sb, r.DesktopGroups);
             }
             else if (r.SdkUnavailable)
             {
@@ -132,6 +134,7 @@ namespace CitrixAdminTool.Wpf.Services
                 case "setMaintenance": return Loc.T("Op_SetMaintenance");
                 case "setMaintenanceBulk": return Loc.T("Op_SetMaintenance");
                 case "listSessions": return Loc.T("Op_ListSessions");
+                case "listDesktopGroups": return Loc.T("Op_ListDesktopGroups");
                 case "logoffSession": return Loc.T("Op_LogoffSession");
                 case "logoffSessionsBulk": return Loc.T("Op_LogoffSession");
                 case "disconnectSession": return Loc.T("Op_DisconnectSession");
@@ -161,6 +164,31 @@ namespace CitrixAdminTool.Wpf.Services
                     s.ClientName ?? "",
                     s.StartTime ?? "",
                     s.SessionStateChangeTime ?? ""));
+            }
+        }
+
+        private static void AppendDesktopGroupTable(StringBuilder sb, IList<BrokerDesktopGroup> groups)
+        {
+            sb.AppendLine();
+            sb.AppendLine("  " + Loc.F("Log_DesktopGroupTable", groups.Count) + ":");
+            sb.AppendLine("  " + string.Join(" | ", new[]
+            {
+                Loc.T("Dg_ColName"), Loc.T("Dg_ColEnabled"), Loc.T("Col_Maint"), Loc.T("Dg_ColKind"),
+                Loc.T("Dg_ColDelivery"), Loc.T("Dg_ColTotal"), Loc.T("Dg_ColInUse"),
+                Loc.T("Dg_ColUnregistered"), Loc.T("Col_SessionCount")
+            }));
+            foreach (var g in groups)
+            {
+                sb.AppendLine(string.Format("  {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8}",
+                    g.Name ?? "",
+                    g.Enabled ? "Yes" : "No",
+                    g.InMaintenanceMode ? "ON" : "-",
+                    g.DesktopKind ?? "",
+                    g.DeliveryType ?? "",
+                    g.TotalDesktops,
+                    g.DesktopsInUse,
+                    g.DesktopsUnregistered,
+                    g.Sessions));
             }
         }
 
@@ -233,6 +261,8 @@ namespace CitrixAdminTool.Wpf.Services
                         sb.AppendLine("    " + Loc.T("Log_FunctionalLevel") + ": " + attempt.FunctionalLevel);
                     if (attempt.SdkLoadMethod != null)
                         sb.AppendLine("    SDK : " + attempt.SdkLoadMethod);
+
+                    AppendLicenseLines(sb, attempt.License);
                 }
                 else
                 {
@@ -265,6 +295,57 @@ namespace CitrixAdminTool.Wpf.Services
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// ライセンス構成とライセンスサーバーとの接続状況を出す。
+        ///
+        /// 接続状況は DDC ごとに並べる。「DDC-02 だけライセンスサーバーに繋がっていない」が
+        /// 実際に起きるため、サイトで1行にまとめると見落とす。
+        /// 猶予期間中は目立つ印を付ける。猶予が切れると新規セッションが拒否されるので、
+        /// 接続テストが成功していても先に対処すべき状態だから。
+        /// </summary>
+        private static void AppendLicenseLines(StringBuilder sb, LicenseInfo license)
+        {
+            if (license == null) return;
+
+            sb.AppendLine("    " + Loc.T("Lic_Header"));
+
+            var server = license.LicenseServerName ?? Loc.T("Common_Unknown");
+            if (!string.IsNullOrEmpty(license.LicenseServerPort)) server += ":" + license.LicenseServerPort;
+            sb.AppendLine("      " + Loc.T("Lic_Server") + ": " + server);
+
+            sb.AppendLine("      " + Loc.T("Lic_Product") + ": "
+                + Join(" / ", license.ProductCode, license.ProductEdition, license.LicensingModel));
+
+            if (license.GracePeriodActive == true)
+            {
+                sb.AppendLine("      ** " + Loc.F("Lic_GraceActive",
+                    license.GraceHoursLeft.HasValue ? license.GraceHoursLeft.Value.ToString() : "?"));
+            }
+
+            foreach (var c in license.Controllers)
+            {
+                var mark = string.IsNullOrEmpty(c.LicensingServerState)
+                           || c.LicensingServerState.Equals("OK", StringComparison.OrdinalIgnoreCase)
+                    ? "  " : "**";
+                sb.AppendLine(string.Format("      {0} {1}: {2}{3}",
+                    mark,
+                    c.DnsName ?? Loc.T("Common_Unknown"),
+                    c.LicensingServerState ?? Loc.T("Common_Unknown"),
+                    string.IsNullOrEmpty(c.LicensingGraceState)
+                        || c.LicensingGraceState.Equals("NotActive", StringComparison.OrdinalIgnoreCase)
+                        ? string.Empty
+                        : " (" + c.LicensingGraceState + ")"));
+            }
+        }
+
+        private static string Join(string separator, params string[] parts)
+        {
+            var list = new List<string>();
+            foreach (var p in parts)
+                if (!string.IsNullOrWhiteSpace(p)) list.Add(p);
+            return list.Count == 0 ? Loc.T("Common_Unknown") : string.Join(separator, list.ToArray());
         }
 
         /// <summary>
@@ -306,14 +387,14 @@ namespace CitrixAdminTool.Wpf.Services
             if (attempt.RequestedIdentity == null)
             {
                 // 統合Windows認証。GUIと同じユーザーのワーカーでDDCに認証される。
-                sb.AppendLine("    認証: 統合Windows認証（" + (attempt.AuthenticatedAs ?? "不明") + "）");
+                sb.AppendLine("    " + Loc.T("Log_Auth") + ": "
+                    + Loc.F("Log_AuthIntegratedAs", attempt.AuthenticatedAs ?? Loc.T("Common_Unknown")));
                 return;
             }
 
             // 別資格情報。指定アカウントのネットワークIDを持つ専用プロセスで実行された。
-            sb.AppendLine("    認証: 別資格情報（専用プロセス） " + attempt.RequestedIdentity);
-            sb.AppendLine("    　　  ↑ このアカウントのネットワークIDで起動したワーカーで接続しました。");
-            sb.AppendLine("    　　  （資格情報ごとにプロセスが分かれるため、フェーズ2の接続再利用は起きません）");
+            sb.AppendLine("    " + Loc.T("Log_Auth") + ": " + Loc.F("Log_AuthCredential", attempt.RequestedIdentity));
+            sb.AppendLine("          " + Loc.T("Log_AuthCredentialNote"));
         }
 
         /// <summary>複数サイトの集計。</summary>
@@ -329,8 +410,7 @@ namespace CitrixAdminTool.Wpf.Services
 
             var sb = new StringBuilder();
             sb.AppendLine("----------------------------------------------------------");
-            sb.AppendLine(string.Format(" 集計: {0} サイト中 {1} サイト成功 / {2} サイト失敗",
-                results.Count, succeeded, results.Count - succeeded));
+            sb.AppendLine(" " + Loc.F("Log_Summary", results.Count, succeeded, results.Count - succeeded));
             sb.AppendLine("----------------------------------------------------------");
             return sb.ToString();
         }

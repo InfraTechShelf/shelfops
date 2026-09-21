@@ -175,6 +175,37 @@ namespace CitrixAdminTool.Core.Connection
         }
 
         // ==================================================================
+        // デリバリーグループ
+        // ==================================================================
+
+        /// <summary>デリバリーグループ一覧を取得する（読み取り）。</summary>
+        public BrokerOperationResult ListDesktopGroups(SiteConnection site)
+        {
+            return RunOnFirstReachableDdc(site, "listDesktopGroups", (ps, ddc, result) =>
+            {
+                ps.Commands.Clear();
+                ps.Streams.ClearStreams();
+
+                ps.AddCommand("Get-BrokerDesktopGroup")
+                  .AddParameter("AdminAddress", ddc)
+                  .AddParameter("MaxRecordCount", int.MaxValue); // 既定の250件打ち切りを外す
+
+                var output = ps.Invoke();
+                BrokerSdkHelpers.CollectStreams(ps, result.Diagnostics);
+                BrokerSdkHelpers.ThrowIfHadErrors(ps);
+
+                foreach (var obj in output)
+                {
+                    if (obj == null) continue;
+                    result.DesktopGroups.Add(ToDesktopGroup(obj));
+                }
+
+                result.Success = true;
+                result.Message = string.Format("{0} 件のデリバリーグループを取得しました。", result.DesktopGroups.Count);
+            });
+        }
+
+        // ==================================================================
         // セッション操作
         // ==================================================================
 
@@ -513,6 +544,27 @@ namespace CitrixAdminTool.Core.Connection
                 ClientName = BrokerSdkHelpers.GetProp(obj, "ClientName"),
                 StartTime = BrokerSdkHelpers.GetProp(obj, "StartTime"),
                 SessionStateChangeTime = BrokerSdkHelpers.GetProp(obj, "SessionStateChangeTime")
+            };
+        }
+
+        private static BrokerDesktopGroup ToDesktopGroup(PSObject obj)
+        {
+            return new BrokerDesktopGroup
+            {
+                Uid = BrokerSdkHelpers.GetIntProp(obj, "Uid"),
+                Name = BrokerSdkHelpers.GetProp(obj, "Name"),
+                PublishedName = BrokerSdkHelpers.GetProp(obj, "PublishedName"),
+                Description = BrokerSdkHelpers.GetProp(obj, "Description"),
+                Enabled = BrokerSdkHelpers.GetBoolProp(obj, "Enabled"),
+                InMaintenanceMode = BrokerSdkHelpers.GetBoolProp(obj, "InMaintenanceMode"),
+                DesktopKind = BrokerSdkHelpers.GetProp(obj, "DesktopKind"),
+                DeliveryType = BrokerSdkHelpers.GetProp(obj, "DeliveryType"),
+                SessionSupport = BrokerSdkHelpers.GetProp(obj, "SessionSupport"),
+                TotalDesktops = BrokerSdkHelpers.GetIntProp(obj, "TotalDesktops"),
+                DesktopsAvailable = BrokerSdkHelpers.GetIntProp(obj, "DesktopsAvailable"),
+                DesktopsInUse = BrokerSdkHelpers.GetIntProp(obj, "DesktopsInUse"),
+                DesktopsUnregistered = BrokerSdkHelpers.GetIntProp(obj, "DesktopsUnregistered"),
+                Sessions = BrokerSdkHelpers.GetIntProp(obj, "Sessions")
             };
         }
 

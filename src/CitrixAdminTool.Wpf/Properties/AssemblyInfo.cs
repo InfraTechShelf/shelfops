@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTrademark("Citrix, Citrix Virtual Apps and Desktops は Cloud Software Group, Inc. の商標です。本ツールは非公式です。")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("0.7.1.0")]
-[assembly: AssemblyFileVersion("0.7.1.0")]
-[assembly: AssemblyInformationalVersion("0.7.1-alpha")]
+[assembly: AssemblyVersion("0.8.0.0")]
+[assembly: AssemblyFileVersion("0.8.0.0")]
+[assembly: AssemblyInformationalVersion("0.8.0-alpha")]
 
 // テーマ用リソースをアセンブリ内から解決する（WPFの既定構成）。
 [assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]

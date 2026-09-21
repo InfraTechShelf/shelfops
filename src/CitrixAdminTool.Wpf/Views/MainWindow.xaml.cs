@@ -103,6 +103,15 @@ namespace CitrixAdminTool.Wpf.Views
             window.Show();
         }
 
+        private void OnOpenDesktopGroups(object sender, RoutedEventArgs e)
+        {
+            var vm = _viewModel.TryCreateDesktopGroupsViewModel();
+            if (vm == null) return;
+
+            var window = new DesktopGroupsWindow(vm) { Owner = this };
+            window.Show();
+        }
+
         private void OnAbout(object sender, RoutedEventArgs e)
         {
             new AboutWindow { Owner = this }.ShowDialog();

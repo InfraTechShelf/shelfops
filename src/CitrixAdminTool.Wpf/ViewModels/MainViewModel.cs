@@ -121,6 +121,26 @@ namespace CitrixAdminTool.Wpf.ViewModels
                 _service, SelectedSite.ToModel(), SelectedSite.AuthMode, _credentialPrompt);
         }
 
+        /// <summary>選択中サイトのデリバリーグループ一覧用ViewModelを作る。選択が無い／入力不備なら null。</summary>
+        public DesktopGroupsViewModel TryCreateDesktopGroupsViewModel()
+        {
+            if (SelectedSite == null)
+            {
+                StatusMessage = Loc.T("Main_SelectSite");
+                return null;
+            }
+
+            var error = SelectedSite.Validate();
+            if (error != null)
+            {
+                StatusMessage = Loc.F("Main_SiteError", SelectedSite.Label, error);
+                return null;
+            }
+
+            return new DesktopGroupsViewModel(
+                _service, SelectedSite.ToModel(), SelectedSite.AuthMode, _credentialPrompt);
+        }
+
         public ObservableCollection<SiteViewModel> Sites { get; private set; }
 
         /// <summary>
@@ -536,6 +556,12 @@ namespace CitrixAdminTool.Wpf.ViewModels
                 siteVm.StatusDetail = string.Format("{0} / Ver {1}",
                     result.SuccessfulAttempt.DdcAddress,
                     result.SuccessfulAttempt.Version ?? Loc.T("Common_Unknown"));
+
+                // 接続できていてもライセンスサーバーと通信できていない状態は、
+                // 猶予が切れた時点で新規セッションが拒否される。一覧の状態欄で先に気づかせる。
+                var license = result.SuccessfulAttempt.License;
+                if (license != null && (license.GracePeriodActive == true || license.HasControllerProblem))
+                    siteVm.StatusDetail += "  " + Loc.T("Lic_WarnShort");
             }
             else
             {

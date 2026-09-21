@@ -123,6 +123,7 @@ namespace CitrixAdminTool.Core.Interop
         public const string OpListMachines = "listMachines";
         public const string OpSetMaintenance = "setMaintenance";
         public const string OpListSessions = "listSessions";
+        public const string OpListDesktopGroups = "listDesktopGroups";
         public const string OpLogoffSession = "logoffSession";
         public const string OpDisconnectSession = "disconnectSession";
 
@@ -198,6 +199,7 @@ namespace CitrixAdminTool.Core.Interop
                 { "targets", new List<object>((r.Targets ?? new List<BrokerTargetResult>()).Select(TargetToDict)) },
                 { "machines", new List<object>((r.Machines ?? new List<BrokerMachine>()).Select(MachineToDict)) },
                 { "sessions", new List<object>((r.Sessions ?? new List<BrokerSession>()).Select(SessionToDict)) },
+                { "desktopGroups", new List<object>((r.DesktopGroups ?? new List<BrokerDesktopGroup>()).Select(DesktopGroupToDict)) },
                 { "diagnostics", new List<object>((r.Diagnostics ?? new List<string>()).Cast<object>()) }
             };
         }
@@ -236,6 +238,16 @@ namespace CitrixAdminTool.Core.Interop
                 }
             }
 
+            object groupsValue;
+            if (d.TryGetValue("desktopGroups", out groupsValue) && groupsValue is List<object>)
+            {
+                foreach (var item in (List<object>)groupsValue)
+                {
+                    var gd = item as IDictionary<string, object>;
+                    if (gd != null) result.DesktopGroups.Add(DesktopGroupFromDict(gd));
+                }
+            }
+
             object sessionsValue;
             if (d.TryGetValue("sessions", out sessionsValue) && sessionsValue is List<object>)
             {
@@ -266,6 +278,48 @@ namespace CitrixAdminTool.Core.Interop
                 TargetName = GetString(d, "targetName"),
                 Success = GetBool(d, "success"),
                 ErrorMessage = GetString(d, "errorMessage")
+            };
+        }
+
+        private static Dictionary<string, object> DesktopGroupToDict(BrokerDesktopGroup g)
+        {
+            return new Dictionary<string, object>
+            {
+                { "uid", g.Uid },
+                { "name", g.Name },
+                { "publishedName", g.PublishedName },
+                { "description", g.Description },
+                { "enabled", g.Enabled },
+                { "inMaintenanceMode", g.InMaintenanceMode },
+                { "desktopKind", g.DesktopKind },
+                { "deliveryType", g.DeliveryType },
+                { "sessionSupport", g.SessionSupport },
+                { "totalDesktops", g.TotalDesktops },
+                { "desktopsAvailable", g.DesktopsAvailable },
+                { "desktopsInUse", g.DesktopsInUse },
+                { "desktopsUnregistered", g.DesktopsUnregistered },
+                { "sessions", g.Sessions }
+            };
+        }
+
+        private static BrokerDesktopGroup DesktopGroupFromDict(IDictionary<string, object> d)
+        {
+            return new BrokerDesktopGroup
+            {
+                Uid = (int)GetDouble(d, "uid"),
+                Name = GetString(d, "name"),
+                PublishedName = GetString(d, "publishedName"),
+                Description = GetString(d, "description"),
+                Enabled = GetBool(d, "enabled"),
+                InMaintenanceMode = GetBool(d, "inMaintenanceMode"),
+                DesktopKind = GetString(d, "desktopKind"),
+                DeliveryType = GetString(d, "deliveryType"),
+                SessionSupport = GetString(d, "sessionSupport"),
+                TotalDesktops = (int)GetDouble(d, "totalDesktops"),
+                DesktopsAvailable = (int)GetDouble(d, "desktopsAvailable"),
+                DesktopsInUse = (int)GetDouble(d, "desktopsInUse"),
+                DesktopsUnregistered = (int)GetDouble(d, "desktopsUnregistered"),
+                Sessions = (int)GetDouble(d, "sessions")
             };
         }
 
@@ -351,13 +405,74 @@ namespace CitrixAdminTool.Core.Interop
                 { "sdkLoadMethod", r.SdkLoadMethod },
                 { "isSdkUnavailable", r.IsSdkUnavailable },
                 { "elapsedMs", r.Elapsed.TotalMilliseconds },
-                { "diagnostics", new List<object>((r.Diagnostics ?? new List<string>()).Cast<object>()) }
+                { "diagnostics", new List<object>((r.Diagnostics ?? new List<string>()).Cast<object>()) },
+                { "license", r.License == null ? null : LicenseToDict(r.License) }
             };
+        }
+
+        private static Dictionary<string, object> LicenseToDict(LicenseInfo l)
+        {
+            return new Dictionary<string, object>
+            {
+                { "licenseServerName", l.LicenseServerName },
+                { "licenseServerPort", l.LicenseServerPort },
+                { "productCode", l.ProductCode },
+                { "productEdition", l.ProductEdition },
+                { "licensingModel", l.LicensingModel },
+                { "gracePeriodActive", l.GracePeriodActive.HasValue ? (object)l.GracePeriodActive.Value : null },
+                { "graceHoursLeft", l.GraceHoursLeft.HasValue ? (object)l.GraceHoursLeft.Value : null },
+                { "controllers", new List<object>((l.Controllers ?? new List<ControllerLicenseStatus>()).Select(c =>
+                    (object)new Dictionary<string, object>
+                    {
+                        { "dnsName", c.DnsName },
+                        { "licensingServerState", c.LicensingServerState },
+                        { "licensingGraceState", c.LicensingGraceState },
+                        { "state", c.State }
+                    })) }
+            };
+        }
+
+        private static LicenseInfo LicenseFromDict(IDictionary<string, object> d)
+        {
+            if (d == null) return null;
+
+            var info = new LicenseInfo
+            {
+                LicenseServerName = GetString(d, "licenseServerName"),
+                LicenseServerPort = GetString(d, "licenseServerPort"),
+                ProductCode = GetString(d, "productCode"),
+                ProductEdition = GetString(d, "productEdition"),
+                LicensingModel = GetString(d, "licensingModel"),
+                GracePeriodActive = GetNullableBool(d, "gracePeriodActive")
+            };
+
+            object hours;
+            if (d.TryGetValue("graceHoursLeft", out hours) && hours != null)
+                info.GraceHoursLeft = (int)GetDouble(d, "graceHoursLeft");
+
+            object ctrls;
+            if (d.TryGetValue("controllers", out ctrls) && ctrls is List<object>)
+            {
+                foreach (var item in (List<object>)ctrls)
+                {
+                    var cd = item as IDictionary<string, object>;
+                    if (cd == null) continue;
+                    info.Controllers.Add(new ControllerLicenseStatus
+                    {
+                        DnsName = GetString(cd, "dnsName"),
+                        LicensingServerState = GetString(cd, "licensingServerState"),
+                        LicensingGraceState = GetString(cd, "licensingGraceState"),
+                        State = GetString(cd, "state")
+                    });
+                }
+            }
+
+            return info;
         }
 
         private static ConnectionResult FromDict(IDictionary<string, object> d)
         {
-            return new ConnectionResult
+            var result = new ConnectionResult
             {
                 Success = GetBool(d, "success"),
                 DdcAddress = GetString(d, "ddcAddress"),
@@ -373,6 +488,12 @@ namespace CitrixAdminTool.Core.Interop
                 Elapsed = TimeSpan.FromMilliseconds(GetDouble(d, "elapsedMs")),
                 Diagnostics = GetStringList(d, "diagnostics")
             };
+
+            object lic;
+            if (d.TryGetValue("license", out lic))
+                result.License = LicenseFromDict(lic as IDictionary<string, object>);
+
+            return result;
         }
 
         // ------------------------------------------------------------------

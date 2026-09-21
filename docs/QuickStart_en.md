@@ -1,6 +1,6 @@
 # ShelfOps Quick Start
 
-**ShelfOps 0.7.1-alpha** — an operations console for Citrix Virtual Apps and Desktops (on-premises)
+**ShelfOps 0.8.0-alpha** — an operations console for Citrix Virtual Apps and Desktops (on-premises)
 
 This guide is for CVAD operators using ShelfOps for the first time. It walks through registering a
 site, connecting to it, and working with machines and sessions.
@@ -69,6 +69,20 @@ The copy is not yet connection-tested; review it and click **Save**.
    | − | Not tested |
 
 Every test is written to a log file (see section 8).
+
+The result also shows **licensing information**:
+
+- License server name and port, product (XDT = Virtual Apps and Desktops), edition, and licensing
+  model (UserDevice / Concurrent)
+- **The license server connection state of each DDC.** "Only DDC-02 cannot reach the license
+  server" does happen in practice, so the state is listed per controller. Anything other than OK is
+  marked with `**`
+- A prominent warning **if the site is in a grace period** - that means the license server cannot
+  be reached, and new sessions will be refused once the grace period expires. The site list then
+  also shows "⚠ Check licensing" next to the site
+
+Values are shown in Citrix's own (English) wording so they can be matched against Citrix
+documentation and support articles.
 
 ## 5. Working with machines
 
@@ -196,6 +210,24 @@ is not shown on screen.
 
 ---
 
+## 6a. Reviewing delivery groups
+
+1. Select a site and click **Delivery groups** in the toolbar.
+2. Click **Refresh** to load the list (name, enabled, maintenance, kind, delivery type, session
+   support, machines, in use, unregistered, sessions, description).
+
+**A non-zero Unregistered count is shown in red.** It means some VDAs in that group have not
+registered with a DDC - the usual cause of "I can't launch" and "I can't connect" calls.
+**Disabled groups** are shown in red too.
+
+Filters: kind (Private / Shared), delivery type, enabled/disabled, and a substring search on the
+name. Export (CSV / Copy for Excel) works exactly as for machines.
+
+This view is read-only. Saving, comparing and restoring a group's configuration will come in later
+versions.
+
+---
+
 ## 7. Connecting with different credentials
 
 If a site's authentication mode is "Different credentials", you are prompted the first time you
@@ -240,8 +272,9 @@ about 0.1–0.3 seconds because the worker process stays resident.
 
 - **Session shadowing is not supported.**
 - Targets on-premises Citrix Virtual Apps and Desktops. **Citrix Cloud (DaaS) is not supported.**
-- Current scope: connection testing / machine list and maintenance mode / session list, disconnect,
-  log off and power operations / list export (CSV and clipboard).
+- Current scope: connection testing (including licensing) / machine list and maintenance mode /
+  session list, disconnect, log off and power operations / delivery group list (read-only) /
+  list export (CSV and clipboard).
 - Power operations only apply to **power-managed machines** (those tied to a hosting connection).
 - Export formats are CSV and tab-separated clipboard text. There is no direct xlsx output
   (open the CSV in Excel and save it as xlsx).
