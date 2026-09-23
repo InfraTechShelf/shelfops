@@ -127,6 +127,35 @@ does not stop — every machine is attempted and you get "N succeeded / M failed
 at the bottom right to see **which machines failed and why**. The Details window has a Copy list
 button so you can paste the result into Excel.
 
+### Machine power operations (destructive)
+
+> **Stopping a machine drops every session running on it.**
+
+The same four actions available in the session list can be performed from here, starting from the
+machine. **Machines with no sessions** (unregistered, powered off, nobody logged on) never appear in
+the session list, so this is the only way to act on them - for example, restarting an unregistered
+machine so its VDA re-registers.
+
+1. Select the machines (Ctrl+click or Shift+click for several).
+2. Choose an action from **Power** in the toolbar (or the right-click menu).
+
+   | Action | What it does |
+   |---|---|
+   | Shut down | Asks the guest OS to shut down gracefully. **No effect on an unresponsive machine** |
+   | Restart | Asks the guest OS to shut down gracefully, then restarts. Same caveat |
+   | **Force power off** | Cuts power without letting the OS shut down. Unsaved work is lost |
+   | **Force reset** | Power-cycles without letting the OS shut down. Unsaved work is lost |
+
+3. The confirmation dialog shows **the total number of sessions running on the target machines**.
+   "running 12 session(s) in total" means that many users will be disconnected. If nobody is using
+   them, it says so instead.
+4. Confirm to proceed.
+
+A power operation is reported as done **once it has been accepted**; the actual shutdown or restart
+happens asynchronously on the hypervisor, so refreshing immediately still shows the old power state.
+Machines that are not power-managed will fail; use **Details** to see why.
+
+
 ### Exporting the list (CSV / Excel)
 
 - **Copy for Excel**: copies the table to the clipboard as tab-separated text. Just paste into Excel.
