@@ -376,6 +376,116 @@ namespace CitrixAdminTool.Wpf.ViewModels
         }
 
         // ------------------------------------------------------------------
+        // 電源操作（破壊的。呼び出し側で確認を取ってから呼ぶこと）
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// 選択されたマシンに電源操作を要求する。
+        ///
+        /// セッション一覧の同名メソッドと違い、対象は最初からマシンなので変換は要らない。
+        /// Core 側（PowerActionBulk）はマシン名のリストを受け取る作りなので、そのまま渡せる。
+        ///
+        /// 呼び出し側（View）は <see cref="CountSessionsOn"/> で影響を受けるセッション数を
+        /// 示したうえで確認を取ること。
+        /// </summary>
+        public async Task PowerActionAsync(IList<BrokerMachine> machines, BrokerPowerAction action)
+        {
+            if (IsBusy) return;
+
+            var names = ResolveMachineNames(machines);
+            if (names.Count == 0)
+            {
+                StatusMessage = Loc.T("Machines_SelectTarget");
+                return;
+            }
+
+            if (!EnsureCredential()) return;
+
+            IsBusy = true;
+            LastOperationResult = null;
+            StatusMessage = names.Count == 1
+                ? Loc.F("Power_RequestingOne", names[0], action)
+                : Loc.F("Power_RequestingMany", names.Count, action);
+            try
+            {
+                var result = await Task.Run(() => RunPowerAction(names, action));
+
+                // 破壊的操作は成否にかかわらず監査記録として必ずログに残す。
+                var logFile = WriteOperationLog(result);
+                LastOperationResult = result;
+
+                if (result.Success)
+                {
+                    // 電源操作は非同期に進むため、直後に取り直しても電源状態は変わっていない。
+                    // それでも取り直すのは、セッション数など他の値を最新にするため。
+                    await LoadMachinesCoreAsync();
+
+                    var note = result.Message
+                        + (result.WorkingDdc != null ? Loc.F("Common_DdcNote", result.WorkingDdc) : string.Empty);
+
+                    if (result.FailureCount > 0)
+                        note += Loc.T("Power_HintFailures");
+
+                    StatusMessage = WithLogNote(note, logFile);
+                }
+                else
+                {
+                    ApplyResult(result, Loc.T("Power_OpLabel"));
+                    StatusMessage = WithLogNote(StatusMessage, logFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = Loc.F("Power_Error", ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private BrokerOperationResult RunPowerAction(IList<string> machineNames, BrokerPowerAction action)
+        {
+            if (_authMode == AuthMode.PromptForCredential)
+                return _service.PowerActionWithCredential(
+                    _site, machineNames, action,
+                    _credential.Domain, _credential.UserName, _credential.Password);
+
+            return _service.PowerActionIntegrated(_site, machineNames, action);
+        }
+
+        /// <summary>選択されたマシンから、対象のマシン名を重複なく取り出す。</summary>
+        public IList<string> ResolveMachineNames(IList<BrokerMachine> machines)
+        {
+            return (machines ?? new List<BrokerMachine>())
+                .Where(m => m != null && !string.IsNullOrWhiteSpace(m.MachineName))
+                .Select(m => m.MachineName.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 指定マシン上で動作しているセッション数の合計。確認ダイアログで影響範囲を示すために使う。
+        ///
+        /// セッション一覧と違いセッションの一覧を持っていないため、取得済みの
+        /// <see cref="BrokerMachine.SessionCount"/> を合計する。
+        /// これは前回の「更新」時点のスナップショットであり、その後に増えた分は含まれない
+        /// （確認ダイアログでもその旨に触れる）。
+        /// </summary>
+        public int CountSessionsOn(IList<BrokerMachine> machines)
+        {
+            if (machines == null) return 0;
+
+            var total = 0;
+            foreach (var m in machines)
+            {
+                if (m == null) continue;
+                total += m.SessionCount;
+            }
+            return total;
+        }
+
+        // ------------------------------------------------------------------
         // エクスポート
         // ------------------------------------------------------------------
 

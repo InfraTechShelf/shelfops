@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using CitrixAdminTool.Core.Models;
@@ -17,6 +18,9 @@ namespace CitrixAdminTool.Wpf.Views
     ///
     /// DataGrid の SelectedItems はバインドできないため、選択行の受け渡しは
     /// ここからViewModelのメソッドへ引数で渡す。
+    ///
+    /// 電源操作はさらに影響が大きい。マシンを止めると、そのマシンで作業している
+    /// 利用者のセッションがすべて落ちるため、確認では**影響を受けるセッション数**を示す。
     /// </summary>
     public partial class MachinesWindow : Window
     {
@@ -92,6 +96,88 @@ namespace CitrixAdminTool.Wpf.Views
         }
 
         // ------------------------------------------------------------------
+        // 電源操作（破壊的）
+        // ------------------------------------------------------------------
+
+        private async void OnPowerShutdown(object sender, RoutedEventArgs e)
+        {
+            await PowerActionAsync(BrokerPowerAction.Shutdown, Loc.T("Power_Shutdown"));
+        }
+
+        private async void OnPowerRestart(object sender, RoutedEventArgs e)
+        {
+            await PowerActionAsync(BrokerPowerAction.Restart, Loc.T("Power_Restart"));
+        }
+
+        private async void OnPowerTurnOff(object sender, RoutedEventArgs e)
+        {
+            await PowerActionAsync(BrokerPowerAction.TurnOff, Loc.T("Power_TurnOff"));
+        }
+
+        private async void OnPowerReset(object sender, RoutedEventArgs e)
+        {
+            await PowerActionAsync(BrokerPowerAction.Reset, Loc.T("Power_Reset"));
+        }
+
+        /// <summary>
+        /// 電源操作の確認と実行。
+        ///
+        /// 【警告の強さを影響範囲で変える】
+        /// 対象マシンでセッションが動いていれば、その利用者は作業中に切断される。
+        /// 一方、未登録マシンの再起動のように誰も使っていない場合もある。
+        /// 毎回同じ強さで脅かすと警告そのものが読まれなくなるため、
+        /// セッション数が 0 のときは「影響を受ける利用者はいません」と伝える。
+        /// </summary>
+        private async Task PowerActionAsync(BrokerPowerAction action, string actionLabel)
+        {
+            var machines = SelectedMachines();
+            if (machines.Count == 0)
+            {
+                MessageBox.Show(this, Loc.T("Machines_SelectTargetHint"),
+                    Loc.F("Power_ConfirmTitle", actionLabel), MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var names = _vm.ResolveMachineNames(machines);
+            var affected = _vm.CountSessionsOn(machines);
+
+            var message = new StringBuilder();
+            message.Append(Loc.F("Power_ConfirmHeader", names.Count, actionLabel));
+            message.AppendLine();
+            message.AppendLine();
+            message.AppendLine(FormatTargets(machines));
+            message.AppendLine();
+
+            if (affected > 0)
+            {
+                message.AppendLine(Loc.F("Machines_PowerAffected", affected));
+                message.AppendLine(Loc.T("Power_ConfirmAffected3"));
+            }
+            else
+            {
+                message.AppendLine(Loc.T("Machines_PowerNoSessions"));
+            }
+
+            message.AppendLine();
+            message.AppendLine(Loc.T(BrokerPowerActions.IsForced(action)
+                ? "Power_WarnForced"
+                : "Power_WarnGraceful"));
+
+            message.AppendLine();
+            message.Append(Loc.T("Power_ConfirmTail"));
+
+            var answer = MessageBox.Show(this, message.ToString(),
+                Loc.F("Power_ConfirmTitle", actionLabel),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (answer != MessageBoxResult.Yes) return;
+
+            await _vm.PowerActionAsync(machines, action);
+        }
+
+        // ------------------------------------------------------------------
         // エクスポート
         // ------------------------------------------------------------------
 
@@ -143,7 +229,12 @@ namespace CitrixAdminTool.Wpf.Views
             var summary = Loc.F("Machines_DetailSummary",
                 result.SuccessCount, result.FailureCount, result.Targets.Count);
 
-            var window = new OperationDetailWindow(Loc.T("Machines_DetailTitle"), summary, result.Targets)
+            // 直近の操作がメンテナンス切替か電源操作かで見出しを変える。
+            var title = result.Operation == "powerAction"
+                ? Loc.T("Power_DetailTitle")
+                : Loc.T("Machines_DetailTitle");
+
+            var window = new OperationDetailWindow(title, summary, result.Targets)
             {
                 Owner = this
             };

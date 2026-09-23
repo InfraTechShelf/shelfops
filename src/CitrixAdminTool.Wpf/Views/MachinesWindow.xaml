@@ -42,6 +42,26 @@
                     <Button x:Name="MaintOffButton" Content="{loc:T Machines_MaintOff}" Click="OnMaintenanceOff"
                             MinWidth="128" IsEnabled="{Binding IsNotBusy}" Margin="6,0,0,0" />
                     <Border Width="1" Background="#CCCCCC" Margin="10,2,10,2" />
+                    <!--
+                        電源操作。セッション一覧と同じ並び・同じ色分けにそろえる。
+                        強制系（電源オフ・リセット）は区切り線で分け、赤字にして取り違えを防ぐ。
+                    -->
+                    <Menu Background="Transparent" VerticalAlignment="Center"
+                          IsEnabled="{Binding IsNotBusy}">
+                        <MenuItem Header="{loc:T Power_Menu}" Height="22"
+                                  ToolTip="{loc:T Machines_TipPowerMenu}">
+                            <MenuItem Header="{loc:T Power_Shutdown}" Click="OnPowerShutdown"
+                                      ToolTip="{loc:T Power_TipShutdown}" />
+                            <MenuItem Header="{loc:T Power_Restart}" Click="OnPowerRestart"
+                                      ToolTip="{loc:T Power_TipRestart}" />
+                            <Separator />
+                            <MenuItem Header="{loc:T Power_TurnOff}" Click="OnPowerTurnOff" Foreground="#C00000"
+                                      ToolTip="{loc:T Power_TipTurnOff}" />
+                            <MenuItem Header="{loc:T Power_Reset}" Click="OnPowerReset" Foreground="#C00000"
+                                      ToolTip="{loc:T Power_TipReset}" />
+                        </MenuItem>
+                    </Menu>
+                    <Border Width="1" Background="#CCCCCC" Margin="10,2,10,2" />
                     <Button Content="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" MinWidth="112"
                             IsEnabled="{Binding IsNotBusy}"
                             ToolTip="{loc:T Export_TipClipboard}" />
@@ -142,6 +162,14 @@
                     <Separator />
                     <MenuItem Header="{loc:T Machines_MaintOn}" Click="OnMaintenanceOn" />
                     <MenuItem Header="{loc:T Machines_MaintOff}" Click="OnMaintenanceOff" />
+                    <Separator />
+                    <MenuItem Header="{loc:T Power_MenuPlain}">
+                        <MenuItem Header="{loc:T Power_Shutdown}" Click="OnPowerShutdown" />
+                        <MenuItem Header="{loc:T Power_Restart}" Click="OnPowerRestart" />
+                        <Separator />
+                        <MenuItem Header="{loc:T Power_TurnOff}" Click="OnPowerTurnOff" Foreground="#C00000" />
+                        <MenuItem Header="{loc:T Power_Reset}" Click="OnPowerReset" Foreground="#C00000" />
+                    </MenuItem>
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Columns>

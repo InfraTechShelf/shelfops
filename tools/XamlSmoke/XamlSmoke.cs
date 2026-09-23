@@ -76,6 +76,7 @@ internal static class XamlSmoke
 
         failures += CheckLanguageSwitch();
         failures += CheckPowerLogic();
+        failures += CheckMachinePowerLogic();
 
         app.Shutdown();
 
@@ -260,6 +261,33 @@ internal static class XamlSmoke
         failures += Expect("machine names compare case-insensitively",
             vm.ResolveMachineNames(mixedCase).Count == 1, null);
 
+        return failures;
+    }
+
+    /// <summary>
+    /// マシン一覧からの電源操作で、確認ダイアログに出す影響範囲の求め方を確認する。
+    /// セッション一覧と違いセッションの一覧を持たないため、SessionCount の合計で代用している。
+    /// ここが間違っていると、利用者が影響を過小評価したまま実行してしまう。
+    /// </summary>
+    private static int CheckMachinePowerLogic()
+    {
+        var vm = new MachinesViewModel(new WorkerConnectionService(), _site,
+            AuthMode.IntegratedWindows, new StubPrompt());
+
+        var busy = new BrokerMachine { MachineName = @"CORP\SRV-001", SessionCount = 12 };
+        var idle = new BrokerMachine { MachineName = @"CORP\VDI-009", SessionCount = 0 };
+        var dup = new BrokerMachine { MachineName = @"corp\srv-001", SessionCount = 12 };
+
+        var failures = 0;
+
+        failures += Expect("session counts add up across machines",
+            vm.CountSessionsOn(new List<BrokerMachine> { busy, idle }) == 12, null);
+        failures += Expect("idle machines report no affected sessions",
+            vm.CountSessionsOn(new List<BrokerMachine> { idle }) == 0, null);
+        failures += Expect("machine names de-duplicate case-insensitively",
+            vm.ResolveMachineNames(new List<BrokerMachine> { busy, dup }).Count == 1, null);
+
+        vm.Dispose();
         return failures;
     }
 
