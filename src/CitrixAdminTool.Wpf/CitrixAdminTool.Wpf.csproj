@@ -82,6 +82,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\SnapshotWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DiffWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\DesktopGroupsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -117,6 +125,14 @@
       <DependentUpon>SessionsWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Views\SnapshotWindow.xaml.cs">
+      <DependentUpon>SnapshotWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\DiffWindow.xaml.cs">
+      <DependentUpon>DiffWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Views\DesktopGroupsWindow.xaml.cs">
       <DependentUpon>DesktopGroupsWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -132,6 +148,7 @@
     <Compile Include="Mvvm\ViewModelBase.cs" />
     <Compile Include="Mvvm\RelayCommand.cs" />
     <Compile Include="ViewModels\DesktopGroupsViewModel.cs" />
+    <Compile Include="ViewModels\SnapshotViewModels.cs" />
     <Compile Include="ViewModels\MachinesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SessionsViewModel.cs" />
@@ -140,6 +157,7 @@
     <Compile Include="Services\CredentialInput.cs" />
     <Compile Include="Services\ConnectionReportFormatter.cs" />
     <Compile Include="Services\RunLogWriter.cs" />
+    <Compile Include="Services\SnapshotFile.cs" />
     <Compile Include="Services\TableExporter.cs" />
     <Compile Include="Services\Localization\Loc.cs" />
     <Compile Include="Services\Localization\SessionSupportConverter.cs" />

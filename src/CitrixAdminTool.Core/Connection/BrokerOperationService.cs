@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -203,6 +204,162 @@ namespace CitrixAdminTool.Core.Connection
                 result.Success = true;
                 result.Message = string.Format("{0} 件のデリバリーグループを取得しました。", result.DesktopGroups.Count);
             });
+        }
+
+        // ==================================================================
+        // デリバリーグループ構成のスナップショット（読み取り）
+        // ==================================================================
+
+        /// <summary>
+        /// 関連オブジェクトの区分と、それを取るコマンドレット。
+        /// いずれも -DesktopGroupUid で絞り込める（Citrix.Broker.Admin.V2）。
+        /// タグは DG 本体の Tags プロパティに含まれるので、別には取らない。
+        /// </summary>
+        private static readonly string[][] SnapshotSources =
+        {
+            new[] { "accessPolicyRules",         "Get-BrokerAccessPolicyRule" },
+            new[] { "entitlementPolicyRules",    "Get-BrokerEntitlementPolicyRule" },
+            new[] { "appEntitlementPolicyRules", "Get-BrokerAppEntitlementPolicyRule" },
+            new[] { "assignmentPolicyRules",     "Get-BrokerAssignmentPolicyRule" },
+            new[] { "applications",              "Get-BrokerApplication" },
+            new[] { "powerTimeSchemes",          "Get-BrokerPowerTimeScheme" },
+            new[] { "rebootSchedules",           "Get-BrokerRebootScheduleV2" }
+        };
+
+        /// <summary>
+        /// デリバリーグループ1つの構成をまとめて採取する（読み取りのみ）。
+        ///
+        /// 【区分ごとの失敗は全体の失敗にしない】
+        /// 古い CVAD に無いコマンドレット（RebootScheduleV2 など）や権限不足で、
+        /// 一部の区分だけ取れないことがある。その区分は「空」ではなく「取得できなかった」として
+        /// <see cref="DesktopGroupSnapshot.Warnings"/> に理由を残し、残りの区分は取り続ける。
+        /// 「空」と記録すると、比較で中身が全部消えたかのような誤った差分になるため。
+        ///
+        /// DG 本体が取れない場合だけは全体の失敗とする（何のスナップショットか分からなくなるため）。
+        /// SDK ロードと Runspace 生成は1回だけ。
+        /// </summary>
+        public BrokerOperationResult CaptureDesktopGroup(SiteConnection site, int desktopGroupUid)
+        {
+            return RunOnFirstReachableDdc(site, "captureDesktopGroup", (ps, ddc, result) =>
+            {
+                // 1) DG 本体
+                ps.Commands.Clear();
+                ps.Streams.ClearStreams();
+                ps.AddCommand("Get-BrokerDesktopGroup").AddParameter("AdminAddress", ddc).AddParameter("Uid", desktopGroupUid);
+                var groups = ps.Invoke();
+                BrokerSdkHelpers.CollectStreams(ps, result.Diagnostics);
+                BrokerSdkHelpers.ThrowIfHadErrors(ps);
+
+                var dg = groups.FirstOrDefault();
+                if (dg == null)
+                {
+                    result.Success = false;
+                    result.ErrorMessage = string.Format(
+                        "デリバリーグループ（Uid {0}）が見つかりません。削除された可能性があります。", desktopGroupUid);
+                    return;
+                }
+
+                var snapshot = new DesktopGroupSnapshot
+                {
+                    CapturedAt = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture),
+                    Ddc = ddc,
+                    DesktopGroup = new SnapshotItem
+                    {
+                        Name = BrokerSdkHelpers.GetProp(dg, "Name"),
+                        Uid = BrokerSdkHelpers.GetProp(dg, "Uid"),
+                        Properties = BrokerSdkHelpers.ToPlainProperties(dg)
+                    }
+                };
+
+                // 2) サイト名と製品バージョン（ファイルの由来を示すため。取れなくても続ける）
+                ReadSiteIdentity(ps, ddc, snapshot, result.Diagnostics);
+
+                // 3) 関連オブジェクト
+                foreach (var source in SnapshotSources)
+                {
+                    var sectionId = source[0];
+                    var cmdlet = source[1];
+
+                    try
+                    {
+                        ps.Commands.Clear();
+                        ps.Streams.ClearStreams();
+                        ps.AddCommand(cmdlet)
+                          .AddParameter("AdminAddress", ddc)
+                          .AddParameter("DesktopGroupUid", desktopGroupUid)
+                          .AddParameter("MaxRecordCount", int.MaxValue);
+
+                        var output = ps.Invoke();
+                        BrokerSdkHelpers.CollectStreams(ps, result.Diagnostics);
+                        BrokerSdkHelpers.ThrowIfHadErrors(ps);
+
+                        var items = new List<SnapshotItem>();
+                        foreach (var obj in output)
+                        {
+                            if (obj == null) continue;
+                            items.Add(new SnapshotItem
+                            {
+                                Name = BrokerSdkHelpers.FirstNonEmpty(
+                                    BrokerSdkHelpers.GetProp(obj, "Name"),
+                                    BrokerSdkHelpers.GetProp(obj, "ApplicationName")),
+                                Uid = BrokerSdkHelpers.GetProp(obj, "Uid"),
+                                Properties = BrokerSdkHelpers.ToPlainProperties(obj)
+                            });
+                        }
+
+                        snapshot.Sections[sectionId] = items;
+                        result.Diagnostics.Add(string.Format("[採取] {0}: {1} 件", cmdlet, items.Count));
+                    }
+                    catch (SdkLoadException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        snapshot.Warnings[sectionId] = cmdlet + ": " + ex.Message;
+                        result.Diagnostics.Add(string.Format("[取得不可] {0}: {1}", cmdlet, ex.Message));
+                    }
+                }
+
+                result.Snapshot = snapshot;
+                result.Success = true;
+                result.Message = string.Format("デリバリーグループ [{0}] の構成を採取しました（関連オブジェクト {1} 件{2}）。",
+                    snapshot.DesktopGroupName, snapshot.RelatedItemCount,
+                    snapshot.Warnings.Count > 0 ? string.Format("、取得できなかった区分 {0}", snapshot.Warnings.Count) : string.Empty);
+            });
+        }
+
+        private static void ReadSiteIdentity(PowerShell ps, string ddc, DesktopGroupSnapshot snapshot, List<string> diagnostics)
+        {
+            try
+            {
+                ps.Commands.Clear();
+                ps.Streams.ClearStreams();
+                ps.AddCommand("Get-BrokerSite").AddParameter("AdminAddress", ddc);
+                var site = ps.Invoke().FirstOrDefault();
+                if (site != null) snapshot.SiteName = BrokerSdkHelpers.GetProp(site, "Name");
+
+                ps.Commands.Clear();
+                ps.Streams.ClearStreams();
+                ps.AddCommand("Get-BrokerController").AddParameter("AdminAddress", ddc);
+                var controllers = ps.Invoke();
+                var shortName = ddc.Split('.')[0];
+                var self = controllers.FirstOrDefault(c =>
+                {
+                    var dns = BrokerSdkHelpers.GetProp(c, "DNSName");
+                    return dns != null && (dns.Equals(ddc, StringComparison.OrdinalIgnoreCase)
+                        || dns.Split('.')[0].Equals(shortName, StringComparison.OrdinalIgnoreCase));
+                }) ?? controllers.FirstOrDefault();
+
+                if (self != null)
+                    snapshot.SiteVersion = BrokerSdkHelpers.FirstNonEmpty(
+                        BrokerSdkHelpers.GetProp(self, "ControllerVersion"),
+                        BrokerSdkHelpers.GetProp(self, "Version"));
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Add("サイト名・バージョンの取得に失敗（スナップショットには影響なし）: " + ex.Message);
+            }
         }
 
         // ==================================================================

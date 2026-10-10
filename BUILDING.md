@@ -73,6 +73,16 @@ It is a single C# file compiled on the fly with the `csc.exe` that ships with th
 it needs nothing beyond what the main build needs. Contributions that grow it into a proper test
 project are welcome.
 
+For changes to delivery group snapshots (capture, file format, comparison), also run:
+
+```powershell
+powershell -NoProfile -File .\tools\SnapshotCheck\verify-snapshot.ps1
+```
+
+It loads `ShelfOps.Core.dll` and checks the conversion of PowerShell objects into plain values, the
+JSON round trip and the comparison rules, using `PSCustomObject` stand-ins for the Citrix types.
+It needs no DDC, but it is not a substitute for testing against a real site.
+
 ## Project layout
 
 ```

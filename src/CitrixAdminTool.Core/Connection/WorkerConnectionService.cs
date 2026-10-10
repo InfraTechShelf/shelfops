@@ -254,6 +254,22 @@ namespace CitrixAdminTool.Core.Connection
                 domain, userName, password);
         }
 
+        public BrokerOperationResult CaptureDesktopGroupIntegrated(SiteConnection site, int desktopGroupUid)
+        {
+            return RunOperationIntegrated(site,
+                WorkerProtocol.BuildRequest(WorkerProtocol.OpCaptureDesktopGroup, site,
+                    new Dictionary<string, object> { { "desktopGroupUid", desktopGroupUid } }));
+        }
+
+        public BrokerOperationResult CaptureDesktopGroupWithCredential(
+            SiteConnection site, int desktopGroupUid, string domain, string userName, SecureString password)
+        {
+            return RunOperationWithCredential(site,
+                WorkerProtocol.BuildRequest(WorkerProtocol.OpCaptureDesktopGroup, site,
+                    new Dictionary<string, object> { { "desktopGroupUid", desktopGroupUid } }),
+                domain, userName, password);
+        }
+
         // ==================================================================
         // セッション操作（一覧＝読み取り / ログオフ・切断＝書き込み・破壊的）
         // ==================================================================

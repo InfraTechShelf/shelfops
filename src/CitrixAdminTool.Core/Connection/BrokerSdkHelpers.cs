@@ -144,6 +144,97 @@ namespace CitrixAdminTool.Core.Connection
             catch { return null; }
         }
 
+        /// <summary>
+        /// コマンドレットが返したオブジェクトの全プロパティを、保存・比較できる素の値に変換する。
+        ///
+        /// 返す値は string / List&lt;object&gt; / Dictionary&lt;string, object&gt; / null のみ。
+        /// - 数値・真偽値・列挙値・日時は文字列にする（日時は ISO 8601、数値はカルチャ非依存）
+        /// - 配列は要素ごとに変換したリスト
+        /// - 入れ子のオブジェクト（ユーザー／グループ等）は、そのプロパティの辞書にする。
+        ///   ToString() に頼ると名前しか残らず SID を失うため（別サイト移行で SID と名前の両方が要る）
+        /// - 入れ子は <paramref name="maxDepth"/> 段まで。それより深いものは ToString() で打ち切る
+        ///
+        /// 個々のプロパティの取得で例外が出ても、そのプロパティだけ諦めて続ける
+        /// （一部のゲッターが環境によって例外を投げても、スナップショット全体を失わないため）。
+        /// </summary>
+        public static SortedDictionary<string, object> ToPlainProperties(PSObject obj, int maxDepth = 2)
+        {
+            var result = new SortedDictionary<string, object>(StringComparer.Ordinal);
+            if (obj == null) return result;
+
+            foreach (var p in obj.Properties)
+            {
+                if (p == null) continue;
+                if (p.MemberType != PSMemberTypes.Property && p.MemberType != PSMemberTypes.NoteProperty) continue;
+
+                try
+                {
+                    result[p.Name] = ToPlain(p.Value, 1, maxDepth);
+                }
+                catch
+                {
+                    // このプロパティだけ取れなかった。全体は続ける。
+                }
+            }
+
+            return result;
+        }
+
+        private static object ToPlain(object value, int depth, int maxDepth)
+        {
+            if (value == null) return null;
+
+            // 包みは外して型を判定するが、入れ子オブジェクトとしてプロパティを読むときは
+            // 包み（PSObject）の方を使う。包みにだけ付いたプロパティ（NoteProperty）は、
+            // 外した中身からは見えなくなるため。
+            var wrapper = value as PSObject;
+            if (wrapper != null) value = wrapper.BaseObject;
+            if (value == null) return null;
+
+            var s = value as string;
+            if (s != null) return s;
+
+            if (value is DateTime)
+                return ((DateTime)value).ToString("o", CultureInfo.InvariantCulture);
+
+            var type = value.GetType();
+            if (type.IsPrimitive || type.IsEnum || value is decimal || value is Guid || value is TimeSpan)
+                return Convert.ToString(value, CultureInfo.InvariantCulture);
+
+            var dict = value as System.Collections.IDictionary;
+            if (dict != null)
+            {
+                var d = new Dictionary<string, object>();
+                foreach (System.Collections.DictionaryEntry e in dict)
+                    d[Convert.ToString(e.Key, CultureInfo.InvariantCulture)] = depth >= maxDepth ? Flat(e.Value) : ToPlain(e.Value, depth + 1, maxDepth);
+                return d;
+            }
+
+            var list = value as System.Collections.IEnumerable;
+            if (list != null)
+            {
+                var l = new List<object>();
+                foreach (var item in list) l.Add(ToPlain(item, depth, maxDepth));
+                return l;
+            }
+
+            // 入れ子のオブジェクト（例: Citrix のユーザー型）
+            if (depth >= maxDepth) return Flat(value);
+
+            var props = ToPlainProperties(wrapper ?? PSObject.AsPSObject(value), maxDepth - depth);
+            var nested = new Dictionary<string, object>();
+            foreach (var pair in props) nested[pair.Key] = pair.Value;
+            return nested;
+        }
+
+        private static object Flat(object value)
+        {
+            if (value == null) return null;
+            var ps = value as PSObject;
+            var raw = ps == null ? value : ps.BaseObject;
+            return raw == null ? null : Convert.ToString(raw, CultureInfo.InvariantCulture);
+        }
+
         public static string FirstNonEmpty(params string[] candidates)
         {
             return candidates.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c));

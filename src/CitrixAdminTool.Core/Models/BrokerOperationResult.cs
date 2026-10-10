@@ -47,6 +47,9 @@ namespace CitrixAdminTool.Core.Models
         /// <summary>読み取り操作（デリバリーグループ一覧）の結果。</summary>
         public List<BrokerDesktopGroup> DesktopGroups { get; set; } = new List<BrokerDesktopGroup>();
 
+        /// <summary>読み取り操作（デリバリーグループ構成の採取）の結果。採取以外では null。</summary>
+        public DesktopGroupSnapshot Snapshot { get; set; }
+
         /// <summary>
         /// 対象ごとの結果。一括操作では対象の数だけ積まれ、単一操作でも1件積む。
         /// 「どの対象が失敗したか」を画面とログの両方で示すために使う。

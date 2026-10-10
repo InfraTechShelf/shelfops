@@ -59,6 +59,12 @@
                 <StackPanel Orientation="Horizontal">
                     <Button Content="{loc:T Common_Refresh}" Command="{Binding RefreshCommand}" MinWidth="72" />
                     <Border Width="1" Background="#CCCCCC" Margin="6,2,10,2" />
+                    <!-- 構成の採取・比較（読み取りのみ。選択した1グループが対象） -->
+                    <Button Content="{loc:T Snap_Capture}" Click="OnCapture" MinWidth="120"
+                            IsEnabled="{Binding IsNotBusy}" ToolTip="{loc:T Snap_TipCapture}" />
+                    <Button Content="{loc:T Snap_CompareFile}" Click="OnCompare" MinWidth="150" Margin="6,0,0,0"
+                            IsEnabled="{Binding IsNotBusy}" ToolTip="{loc:T Snap_TipCompareFromList}" />
+                    <Border Width="1" Background="#CCCCCC" Margin="10,2,10,2" />
                     <Button Content="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" MinWidth="112"
                             IsEnabled="{Binding IsNotBusy}" ToolTip="{loc:T Export_TipClipboard}" />
                     <Button Content="{loc:T Common_SaveCsv}" Click="OnExportCsv" MinWidth="96" Margin="6,0,0,0"
@@ -120,6 +126,9 @@
                   IsEnabled="{Binding IsNotBusy}">
             <DataGrid.ContextMenu>
                 <ContextMenu>
+                    <MenuItem Header="{loc:T Snap_Capture}" Click="OnCapture" />
+                    <MenuItem Header="{loc:T Snap_CompareFile}" Click="OnCompare" />
+                    <Separator />
                     <MenuItem Header="{loc:T Common_CopyForExcel}" Click="OnCopyToClipboard" />
                     <MenuItem Header="{loc:T Common_SaveCsv}" Click="OnExportCsv" />
                 </ContextMenu>

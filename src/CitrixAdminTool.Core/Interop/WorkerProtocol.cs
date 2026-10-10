@@ -124,6 +124,7 @@ namespace CitrixAdminTool.Core.Interop
         public const string OpSetMaintenance = "setMaintenance";
         public const string OpListSessions = "listSessions";
         public const string OpListDesktopGroups = "listDesktopGroups";
+        public const string OpCaptureDesktopGroup = "captureDesktopGroup";
         public const string OpLogoffSession = "logoffSession";
         public const string OpDisconnectSession = "disconnectSession";
 
@@ -200,6 +201,7 @@ namespace CitrixAdminTool.Core.Interop
                 { "machines", new List<object>((r.Machines ?? new List<BrokerMachine>()).Select(MachineToDict)) },
                 { "sessions", new List<object>((r.Sessions ?? new List<BrokerSession>()).Select(SessionToDict)) },
                 { "desktopGroups", new List<object>((r.DesktopGroups ?? new List<BrokerDesktopGroup>()).Select(DesktopGroupToDict)) },
+                { "snapshot", r.Snapshot == null ? null : r.Snapshot.ToDict() },
                 { "diagnostics", new List<object>((r.Diagnostics ?? new List<string>()).Cast<object>()) }
             };
         }
@@ -237,6 +239,10 @@ namespace CitrixAdminTool.Core.Interop
                     if (md != null) result.Machines.Add(MachineFromDict(md));
                 }
             }
+
+            object snapshotValue;
+            if (d.TryGetValue("snapshot", out snapshotValue) && snapshotValue is IDictionary<string, object>)
+                result.Snapshot = DesktopGroupSnapshot.FromDict((IDictionary<string, object>)snapshotValue);
 
             object groupsValue;
             if (d.TryGetValue("desktopGroups", out groupsValue) && groupsValue is List<object>)

@@ -274,6 +274,77 @@ namespace CitrixAdminTool.Wpf.ViewModels
         }
 
         // ------------------------------------------------------------------
+        // 構成のスナップショット（読み取りのみ）
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// 指定したデリバリーグループの構成を採取する。失敗時は null（理由はステータスに出す）。
+        ///
+        /// 採取に使ったアカウントをファイルに残す。別資格情報ならワーカーに渡した指定アカウント、
+        /// 統合認証なら GUI を動かしているユーザー。ワーカー側は別資格情報でも自分のローカル ID しか
+        /// 知らないため、ここ（GUI）で決める。
+        /// </summary>
+        public async Task<DesktopGroupSnapshot> CaptureAsync(BrokerDesktopGroup group)
+        {
+            if (IsBusy || group == null) return null;
+            if (!EnsureCredential()) return null;
+
+            IsBusy = true;
+            StatusMessage = Loc.F("Snap_Capturing", group.Name);
+            try
+            {
+                var uid = group.Uid;
+                var result = await Task.Run(() => _authMode == AuthMode.PromptForCredential
+                    ? _service.CaptureDesktopGroupWithCredential(_site, uid,
+                        _credential.Domain, _credential.UserName, _credential.Password)
+                    : _service.CaptureDesktopGroupIntegrated(_site, uid));
+
+                var logFile = WriteOperationLog(result);
+
+                if (!result.Success || result.Snapshot == null)
+                {
+                    StatusMessage = WithLogNote(result.SdkUnavailable
+                        ? Loc.F("Err_SdkUnavailable", Loc.T("Snap_OpLabel"))
+                        : Loc.F("Err_OpFailed", Loc.T("Snap_OpLabel"), result.ErrorMessage ?? Loc.T("Common_UnknownError")),
+                        logFile);
+                    return null;
+                }
+
+                var snapshot = result.Snapshot;
+                snapshot.CapturedBy = result.RequestedIdentity ?? CurrentUserName();
+                snapshot.Tool = SnapshotFile.ToolName();
+
+                StatusMessage = WithLogNote(Loc.F("Snap_Captured", snapshot.DesktopGroupName, snapshot.RelatedItemCount), logFile);
+                return snapshot;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = Loc.F("Err_LoadError", ex.Message);
+                return null;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        public string SiteId { get { return _site.Id; } }
+        public string SiteLabel { get { return _site.Label; } }
+
+        private static string CurrentUserName()
+        {
+            try
+            {
+                using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+                    return identity == null ? null : identity.Name;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // ------------------------------------------------------------------
         // エクスポート（マシン一覧と同じ規則）
         // ------------------------------------------------------------------
 
