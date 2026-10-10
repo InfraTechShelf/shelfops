@@ -77,6 +77,8 @@
     <Compile Include="Models\BrokerSession.cs" />
     <Compile Include="Models\BrokerTargetResult.cs" />
     <Compile Include="Models\ConnectionResult.cs" />
+    <Compile Include="Models\DesktopGroupSnapshot.cs" />
+    <Compile Include="Models\SnapshotComparer.cs" />
     <Compile Include="Models\LicenseInfo.cs" />
     <Compile Include="Models\SiteConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

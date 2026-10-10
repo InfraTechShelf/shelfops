@@ -31,9 +31,10 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
 | Connection test | Verifies connectivity to Delivery Controllers, with failover. Shows the license server, edition and licensing model, and **whether each DDC can reach the license server** |
 | Machine list | Lists machines and their state, including assigned users |
 | Delivery group list | Lists delivery groups with machine counts; **unregistered machines are highlighted** |
+| **Configuration snapshots** | Capture a delivery group's complete configuration (rules, applications, schedules), save it as JSON, and **compare it with the current state** to see what changed. Read-only |
 | Maintenance mode | Toggle ON/OFF for several machines at once (with a confirmation showing the count) |
 | Session management | List, disconnect and log off sessions; multi-select for bulk operations |
-| **VDI power operations** | Shut down or restart the machine hosting a session, straight from the session list. Force power off and force reset are also available |
+| **VDI power operations** | Shut down or restart machines from the machine list, or the machine hosting a session from the session list. Force power off and force reset are also available |
 | Filtering and search | Filter by delivery group, catalog, session type, maintenance state and session state; substring search by name |
 | List export | Save as CSV, or copy to the clipboard ready to paste into Excel |
 | Duplicate a site | Copy a registered site including its DDC configuration, so you don't retype FQDNs |
@@ -58,7 +59,7 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
 ### Not in this version
 
 - Session shadowing — planned for a future release
-- Delivery group configuration backup, comparison and restore — in development (see `docs/SPEC_phase5_deliverygroups.md`)
+- Delivery group configuration restore — in development (see `docs/SPEC_phase5_deliverygroups.md`). Capture, save and compare are available
 - Catalog management — under consideration
 - **Citrix Cloud (DaaS) is not supported. This tool is for on-premises environments only**
 
@@ -82,13 +83,13 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
    shown on the Release page.
 
    ```
-   SHA-256: aa50e73a815e4c0b320881c5fbfadb23bfe7ad58ddff0f9d250cf86c2379df98
+   SHA-256: bed47fe1888dcf14f5db91fbaf1c0affa129ceb5300b30a97750c8e24a695620
    ```
 
    To check (PowerShell):
 
    ```powershell
-   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.8.0-alpha.zip
+   Get-FileHash -Algorithm SHA256 .\ShelfOps-0.9.0-alpha.zip
    ```
 
 3. Extract it anywhere and run `ShelfOps.exe`. There is no installer, and nothing is written to the
@@ -131,7 +132,8 @@ privately, see [SECURITY.md](SECURITY.md).
 ## Roadmap
 
 - [ ] Session shadowing
-- [ ] Delivery group configuration: save, compare and restore
+- [x] Delivery group configuration: capture, save and compare (0.9)
+- [ ] Delivery group configuration: restore
 - [ ] Catalog management (under consideration)
 - [ ] Code signing
 

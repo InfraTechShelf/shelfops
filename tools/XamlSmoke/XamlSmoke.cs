@@ -1,4 +1,4 @@
-// Copyright 2026 Infra Tech Shelf
+﻿// Copyright 2026 Infra Tech Shelf
 // Licensed under the Apache License, Version 2.0. See LICENSE in the repository root.
 
 using System;
@@ -102,6 +102,8 @@ internal static class XamlSmoke
         failures += Check(label + " / MachinesWindow", MakeMachines);
         failures += Check(label + " / SessionsWindow", MakeSessions);
         failures += Check(label + " / DesktopGroupsWindow", MakeDesktopGroups);
+        failures += Check(label + " / SnapshotWindow", MakeSnapshot);
+        failures += Check(label + " / DiffWindow", MakeDiff);
         failures += Check(label + " / AboutWindow", () => new AboutWindow());
         failures += Check(label + " / CredentialWindow", () => new CredentialWindow("Smoke test site"));
         return failures;
@@ -153,6 +155,51 @@ internal static class XamlSmoke
         });
 
         return new DesktopGroupsWindow(vm);
+    }
+
+    /// <summary>取得できなかった区分（警告）と比較対象外のプロパティを含む採取結果。</summary>
+    private static DesktopGroupSnapshot SampleSnapshot(string description, bool withWarning)
+    {
+        var snapshot = new DesktopGroupSnapshot
+        {
+            CapturedAt = "2026-10-10T09:00:00+09:00", CapturedBy = @"CORP\admin", Tool = "ShelfOps smoke",
+            SiteName = "Site-A", Ddc = "ddc01.corp.local", SiteVersion = "7.2402"
+        };
+
+        var dg = new SnapshotItem { Name = "VDI-Standard", Uid = "1", Properties = new SortedDictionary<string, object>(StringComparer.Ordinal) };
+        dg.Properties["Description"] = description;
+        dg.Properties["Enabled"] = "True";
+        dg.Properties["Tags"] = new List<object> { "Tokyo", "Pilot" };
+        dg.Properties["Sessions"] = "87";
+        dg.Properties["Uid"] = "1";
+        snapshot.DesktopGroup = dg;
+
+        var rule = new SnapshotItem { Name = "VDI-Standard_Direct", Uid = "5", Properties = new SortedDictionary<string, object>(StringComparer.Ordinal) };
+        rule.Properties["Enabled"] = "True";
+        rule.Properties["IncludedUsers"] = new List<object> { @"CORP\VDI-Users" };
+        snapshot.Sections["accessPolicyRules"] = new List<SnapshotItem> { rule };
+        snapshot.Sections["applications"] = new List<SnapshotItem>();
+
+        if (withWarning)
+            snapshot.Warnings["rebootSchedules"] = "Get-BrokerRebootScheduleV2: access denied";
+
+        return snapshot;
+    }
+
+    private static Window MakeSnapshot()
+    {
+        return new SnapshotWindow(new SnapshotViewModel(SampleSnapshot("Standard desktops", true), "site-a", "Site A"));
+    }
+
+    private static Window MakeDiff()
+    {
+        var saved = SampleSnapshot("Standard desktops", false);
+        var current = SampleSnapshot("Standard desktops (changed)", true);
+        current.Sections["accessPolicyRules"][0].Properties["IncludedUsers"] = new List<object> { @"CORP\VDI-Users", @"CORP\Temp" };
+        current.SiteName = "Site-B";
+
+        var diff = SnapshotComparer.Compare(saved, current);
+        return new DiffWindow(new DiffViewModel(diff, saved, current, @"C:\temp\saved.json"));
     }
 
     private static Window MakeSessions()

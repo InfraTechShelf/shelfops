@@ -1,6 +1,6 @@
 # ShelfOps Quick Start
 
-**ShelfOps 0.8.0-alpha** — an operations console for Citrix Virtual Apps and Desktops (on-premises)
+**ShelfOps 0.9.0-alpha** — an operations console for Citrix Virtual Apps and Desktops (on-premises)
 
 This guide is for CVAD operators using ShelfOps for the first time. It walks through registering a
 site, connecting to it, and working with machines and sessions.
@@ -252,8 +252,49 @@ registered with a DDC - the usual cause of "I can't launch" and "I can't connect
 Filters: kind (Private / Shared), delivery type, enabled/disabled, and a substring search on the
 name. Export (CSV / Copy for Excel) works exactly as for machines.
 
-This view is read-only. Saving, comparing and restoring a group's configuration will come in later
-versions.
+### Capturing and saving a configuration (read-only)
+
+You can record a delivery group's **complete configuration**. Save one before a change, and you can
+later see exactly what was changed - or what changed without anyone telling you.
+
+1. Select **one** group and click **Capture settings** (also in the right-click menu).
+2. A configuration window opens, listing everything as a table (section, target, property, value):
+   - every property of the group itself (including tags)
+   - access policy rules, desktop and application entitlements, assignment rules
+   - published applications, power time schemes, reboot schedules
+3. **Save to file...** writes it as a JSON file
+   (default name: `ShelfOps_dg_<group>_<site>_<timestamp>.json`).
+
+- Filter by section, or search by substring over target, property name and value.
+  **Copy for Excel** copies the table as shown.
+- **Grey rows** are runtime status (machine and session counts) and internal IDs. They are saved but
+  not compared.
+- **Red rows** are sections that **could not be read** (for example, missing permissions); the reason
+  is in the value column. They are deliberately distinguished from "none".
+- Nothing in your environment is changed. Read Only Administrator is enough.
+
+### Comparing with a saved file
+
+1. Select one group and click **Compare with saved file...**.
+2. Pick a file you saved earlier. ShelfOps captures the current configuration, compares the two and
+   opens the comparison window. (**Compare with saved file...** in the configuration window compares
+   the capture you are looking at instead.)
+
+| Kind | Meaning |
+|---|---|
+| Changed (bold) | The value is different |
+| Only in saved (red) | It was there when saved and is gone now |
+| Only in current (green) | It was added after the file was saved |
+| Not comparable (amber) | That section could not be read on one side |
+| Order only (grey) | Same items, different order. Hidden unless you tick the box |
+
+- Targets are matched **by name**, so a re-created object with a new internal ID still lines up.
+- Comparing against a file from **a different group or site** shows a red warning, but still runs.
+- This release compares only. **Applying a saved configuration (restore) is not available yet**;
+  it is planned for a later version.
+
+> **About saved files**: they contain user and group names and SIDs, machine names and application
+> paths (never credentials). Treat them like log files and check the content before sharing.
 
 ---
 
@@ -302,9 +343,13 @@ about 0.1–0.3 seconds because the worker process stays resident.
 - **Session shadowing is not supported.**
 - Targets on-premises Citrix Virtual Apps and Desktops. **Citrix Cloud (DaaS) is not supported.**
 - Current scope: connection testing (including licensing) / machine list and maintenance mode /
-  session list, disconnect, log off and power operations / delivery group list (read-only) /
+  session list, disconnect, log off and power operations / delivery group list and configuration
+  capture, save and compare (read-only) /
   list export (CSV and clipboard).
 - Power operations only apply to **power-managed machines** (those tied to a hosting connection).
+- Delivery group **restore (applying a saved file) is not available yet**; comparison only.
+- Only applications published directly to the delivery group are captured (publishing through
+  application groups is not included).
 - Export formats are CSV and tab-separated clipboard text. There is no direct xlsx output
   (open the CSV in Excel and save it as xlsx).
 - The application is **not code-signed**, so SmartScreen may warn on startup until a certificate is

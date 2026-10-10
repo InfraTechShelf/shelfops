@@ -67,6 +67,8 @@ namespace CitrixAdminTool.Wpf.Services
                     AppendSessionTable(sb, r.Sessions);
                 if (r.DesktopGroups != null && r.DesktopGroups.Count > 0)
                     AppendDesktopGroupTable(sb, r.DesktopGroups);
+                if (r.Snapshot != null)
+                    AppendSnapshotSummary(sb, r.Snapshot);
             }
             else if (r.SdkUnavailable)
             {
@@ -135,6 +137,7 @@ namespace CitrixAdminTool.Wpf.Services
                 case "setMaintenanceBulk": return Loc.T("Op_SetMaintenance");
                 case "listSessions": return Loc.T("Op_ListSessions");
                 case "listDesktopGroups": return Loc.T("Op_ListDesktopGroups");
+                case "captureDesktopGroup": return Loc.T("Op_CaptureDesktopGroup");
                 case "logoffSession": return Loc.T("Op_LogoffSession");
                 case "logoffSessionsBulk": return Loc.T("Op_LogoffSession");
                 case "disconnectSession": return Loc.T("Op_DisconnectSession");
@@ -164,6 +167,32 @@ namespace CitrixAdminTool.Wpf.Services
                     s.ClientName ?? "",
                     s.StartTime ?? "",
                     s.SessionStateChangeTime ?? ""));
+            }
+        }
+
+        /// <summary>
+        /// 採取したスナップショットの要約。中身（全プロパティ）はログに書かない
+        /// （数百行になりログが読めなくなるため。中身はファイル保存で残す）。
+        /// 区分ごとの件数と、取得できなかった区分の理由は残す。
+        /// </summary>
+        private static void AppendSnapshotSummary(StringBuilder sb, DesktopGroupSnapshot snapshot)
+        {
+            sb.AppendLine();
+            sb.AppendLine("  " + Loc.F("Log_SnapshotHeader", snapshot.DesktopGroupName,
+                snapshot.DesktopGroup == null ? 0 : snapshot.DesktopGroup.Properties.Count));
+
+            foreach (var id in DesktopGroupSnapshot.SectionIds)
+            {
+                string warning;
+                if (snapshot.Warnings.TryGetValue(id, out warning))
+                {
+                    sb.AppendLine("  ** " + id + ": " + warning);
+                    continue;
+                }
+
+                List<SnapshotItem> items;
+                snapshot.Sections.TryGetValue(id, out items);
+                sb.AppendLine("     " + id + ": " + (items == null ? 0 : items.Count));
             }
         }
 
