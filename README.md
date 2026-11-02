@@ -83,7 +83,7 @@ Project site: [Infra Tech Shelf](https://infratechshelf.com/)
    shown on the Release page.
 
    ```
-   SHA-256: bed47fe1888dcf14f5db91fbaf1c0affa129ceb5300b30a97750c8e24a695620
+   SHA-256: 924e0508a66431d8b04ca34ac10fa40072a866a71314876cb7b00ace748693d6
    ```
 
    To check (PowerShell):

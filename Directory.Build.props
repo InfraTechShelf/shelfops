@@ -25,6 +25,11 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <!-- 出力を dist/ にまとめ、「フォルダごとコピーすれば動く」形にする -->
     <SolutionRootDir>$(MSBuildThisFileDirectory)</SolutionRootDir>
+    <!--
+      exe/dll に埋め込まれる pdb のパスやソースパスから、ビルド端末のフォルダ（ユーザー名を含む）を消す。
+      公開バイナリにビルドした人の環境情報を残さないため。
+    -->
+    <PathMap>$(MSBuildThisFileDirectory)=\ShelfOps\</PathMap>
   </PropertyGroup>
 
 </Project>
